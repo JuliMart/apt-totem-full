@@ -1,0 +1,37 @@
+Oracle SQL Developer Data Modeler 24.3.1.351.0831
+Oracle SQL Developer Data Modeler Import Log
+Date and Time: 2025-09-01 17:57:59 CLT
+Design Name: Untitled_1
+RDBMS : Oracle Database 11g
+
+		All Statements: 		48
+		Imported Statements: 	40
+		Failed Statements: 		0
+		Not Recognized Statements: 	8
+
+<<<<< Not Recognized >>>>>
+INSERT INTO tienda (nombre, ubicacion, region) VALUES ('Tienda Central', 'Av. Principal 123', 'RM')
+
+INSERT INTO dispositivo (id_tienda, etiqueta)
+SELECT id_tienda, 'Totem-Entrada' FROM tienda WHERE nombre = 'Tienda Central'
+
+INSERT INTO categoria (nombre) VALUES ('Zapatillas')
+
+INSERT INTO categoria (nombre) VALUES ('Poleras')
+
+INSERT INTO categoria (nombre) VALUES ('Chaquetas')
+
+INSERT INTO producto (nombre, id_categoria, marca)
+SELECT 'Zapatilla Runner X', id_categoria, 'MarcaZ'
+FROM categoria WHERE nombre = 'Zapatillas'
+
+DECLARE
+  v_id_producto NUMBER;
+BEGIN
+  SELECT id_producto INTO v_id_producto FROM producto WHERE nombre='Zapatilla Runner X';
+  INSERT INTO producto_variante (id_producto, sku, talla, color, precio)
+  VALUES (v_id_producto, 'SKU-RUNX-42-RED', '42', 'Rojo', 49990);
+END
+
+COMMIT
+
