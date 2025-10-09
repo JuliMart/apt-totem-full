@@ -1,0 +1,37 @@
+name: frontend
+description: NeoTotem frontend simple en Flutter Web
+publish_to: 'none' # evita publicación accidental en pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.7.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.1.0           # Para requests a FastAPI
+  web_socket_channel: ^3.0.1  # Para WebSockets en tiempo real
+  record: ^5.0.0 # Para grabar audio
+  camera: ^0.11.0+1      # Para capturar frames de la cámara
+  path_provider: ^2.1.2  # Para archivos temporales
+  http_parser: ^4.0.2    # Para MediaType en multipart requests
+  
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  
+  fonts:
+    - family: NotoSans
+      fonts:
+        - asset: fonts/NotoSans-Regular.ttf
+        - asset: fonts/NotoSans-Bold.ttf
+          weight: 700
+    - family: NotoEmoji
+      fonts:
+        - asset: fonts/NotoEmoji-Regular.ttf

@@ -1,5 +1,6 @@
 # Python virtual environment
 .venv/
+.venv311/
 venv/
 env/
 ENV/
@@ -104,15 +105,10 @@ dmypy.json
 # Flutter/Dart
 frontend/build/
 frontend/.dart_tool/
-frontend/.dart_tool/chrome_device
-
-
 frontend/.packages
 frontend/.pub-cache/
 frontend/.pub/
 frontend/pubspec.lock
-.dart_tool/
-.flutter-plugins-dependencies
 
 # IDE
 .vscode/
@@ -142,7 +138,3 @@ logs/
 # Temporary files
 *.tmp
 *.temp
-
-
-
-

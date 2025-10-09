@@ -3,13 +3,20 @@ import re
 
 INTENTS: Dict[str, Dict[str, list]] = {
     "buscar": {
-        "keywords": ["busca", "buscar", "quiero", "tienes", "hay", "mostrar", "ver", "encontrar", "necesito"],
+        "keywords": ["busca", "buscar", "quiero", "tienes", "hay", "mostrar", "ver", "encontrar", "necesito", "zapatillas", "camiseta", "pantalon", "chaqueta", "ropa", "deportiva", "trekking"],
         "patterns": [
             r"busco (.*)",
             r"quiero (.*)",
             r"necesito (.*)",
             r"tienes (.*)",
             r"hay (.*)",
+            r"(zapatillas|zapatos|sneakers) (.*)",
+            r"(camiseta|camiseta|camisa) (.*)",
+            r"(pantalon|pantalones|jeans) (.*)",
+            r"(chaqueta|abrigo|jacket) (.*)",
+            r"ropa (.*)",
+            r"(.*) deportiva",
+            r"(.*) para (.*)",
         ]
     },
     "talla": {
@@ -64,10 +71,21 @@ def extract_intent(text: str) -> Tuple[str, dict]:
     """Heurística simple: detecta la primera intención por keyword + slots básicos."""
     t = (text or "").lower()
     intent = "none"
-    for name, kws in INTENTS.items():
-        if any(kw in t for kw in kws):
-            intent = name
-            break
+    
+    # Detectar intención de búsqueda con keywords expandidos
+    search_keywords = ["busca", "buscar", "quiero", "tienes", "hay", "mostrar", "ver", "encontrar", "necesito", "zapatillas", "camiseta", "pantalon", "chaqueta", "ropa", "deportiva", "trekking"]
+    
+    if any(kw in t for kw in search_keywords):
+        intent = "buscar"
+    else:
+        # Detectar otras intenciones
+        for name, kws in INTENTS.items():
+            if name == "buscar":  # Ya procesado arriba
+                continue
+            if any(kw in t for kw in kws["keywords"]):
+                intent = name
+                break
+    
     slots = {}
     # slots de color simples
     for c in COLORS:
@@ -139,8 +157,17 @@ def calculate_intent_confidence(text: str, intent: str) -> float:
     keyword_score = min(keyword_matches / len(keywords) if keywords else 0, 1.0)
     pattern_score = min(pattern_matches / len(patterns) if patterns else 0, 1.0)
 
-    # Combinación ponderada
-    confidence = (keyword_score * 0.4) + (pattern_score * 0.6)
+    # Combinación ponderada (más peso a keywords para productos específicos)
+    confidence = (keyword_score * 0.7) + (pattern_score * 0.3)
+    
+    # Bonus por detección de productos específicos
+    product_keywords = ["zapatillas", "camiseta", "pantalon", "chaqueta", "ropa", "deportiva", "trekking"]
+    if any(pk in normalized_text for pk in product_keywords):
+        confidence += 0.2
+    
+    # Bonus por detección de colores
+    if any(color in normalized_text for color in COLORS.keys()):
+        confidence += 0.1
 
     return confidence
 
