@@ -1,21 +1,40 @@
 # GitHub Linguist configuration
-# Ajustar estadísticas para resaltar Flutter (Dart) como lenguaje principal
+# Balancear estadísticas: Python 70%, HTML 20%, Dart 10%
 
-# Excluir completamente venv y dependencias
+# Excluir completamente venv y dependencias (NO cuentan)
 **/.venv*/** linguist-vendored
+**/.venv/** linguist-vendored
 **/site-packages/** linguist-vendored
 **/__pycache__/** linguist-vendored
+**/*.pyc linguist-vendored
+**/*.pyo linguist-vendored
 
-# Tratar HTMLs de demo y paneles como documentación
+# Tratar HTMLs como documentación (NO cuentan en lenguajes)
 apt-totem-backend/static/**/*.html linguist-documentation
+frontend/admin/**/*.html linguist-documentation
+frontend/demos/**/*.html linguist-documentation
 *.html linguist-documentation
 
-# Documentación completa
+# Documentación completa (NO cuenta)
 docs/** linguist-documentation
+**/*.md linguist-documentation
 
-# Archivos de test como documentación (opcional, para balancear)
+# Archivos de test como documentación (balancear)
 apt-totem-backend/test/** linguist-documentation
+tests/** linguist-documentation
+**/test_*.py linguist-documentation
 
-# Asegurar que Flutter se cuente correctamente
+# Scripts de utilidad como documentación (balancear)
+apt-totem-backend/scripts_backend/** linguist-documentation
+scripts/** linguist-documentation
+
+# Asegurar que Flutter/Dart se cuente correctamente
 frontend/lib/** linguist-language=Dart
 frontend/**/*.dart linguist-language=Dart
+
+# Archivos de configuración (NO cuentan)
+**/*.yaml linguist-documentation
+**/*.yml linguist-documentation
+**/*.json linguist-documentation
+**/*.toml linguist-documentation
+**/*.lock linguist-documentation
