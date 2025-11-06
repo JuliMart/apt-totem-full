@@ -1,4 +1,6 @@
 # Python virtual environment
+.venv311/
+
 .venv/
 venv/
 env/
