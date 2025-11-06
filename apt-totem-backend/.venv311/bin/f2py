@@ -1,4 +1,4 @@
-#!/Users/julimart/Desktop/apt-totem/.venv311/bin/python3.11
+#!/Users/julimart/Desktop/apt-totem/apt-totem-backend/.venv311/bin/python3.11
 import sys
 from numpy.f2py.f2py2e import main
 if __name__ == '__main__':

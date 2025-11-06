@@ -1,0 +1,100 @@
+# Prompts para Midjourney - Imágenes de Productos
+# Copia y pega estos prompts en Midjourney
+
+## Instrucciones:
+1. Copia cada prompt completo
+2. Pégalo en Midjourney
+3. Genera la imagen
+4. Descarga y renombra según el archivo sugerido
+
+---
+
+### 1. Adidas Adidas Ultraboost 22
+**Colores:** Negro, Blanco, Azul
+**Archivo sugerido:** `adidas-adidas-ultraboost-22.jpg`
+
+```
+/imagine prompt: Adidas Adidas Ultraboost 22 product photography, white background, studio lighting, professional, commercial, high quality --ar 1:1 --v 5.2
+```
+
+---
+
+### 2. Adidas Hoodie Adidas Originals
+**Colores:** Negro, Blanco, Azul
+**Archivo sugerido:** `adidas-hoodie-adidas-originals.jpg`
+
+```
+/imagine prompt: Adidas Hoodie Adidas Originals product photography, white background, studio lighting, professional, commercial, high quality --ar 1:1 --v 5.2
+```
+
+---
+
+### 3. Adidas Pantalón Adidas Tiro
+**Colores:** Negro, Blanco, Azul
+**Archivo sugerido:** `adidas-pantalón-adidas-tiro.jpg`
+
+```
+/imagine prompt: Adidas Pantalón Adidas Tiro product photography, white background, studio lighting, professional, commercial, high quality --ar 1:1 --v 5.2
+```
+
+---
+
+### 4. Converse Converse Chuck Taylor
+**Colores:** Negro, Blanco, Azul
+**Archivo sugerido:** `converse-converse-chuck-taylor.jpg`
+
+```
+/imagine prompt: Converse Converse Chuck Taylor product photography, white background, studio lighting, professional, commercial, high quality --ar 1:1 --v 5.2
+```
+
+---
+
+### 5. Nike Camiseta Nike Dri-FIT
+**Colores:** Negro, Blanco, Azul
+**Archivo sugerido:** `nike-camiseta-nike-dri-fit.jpg`
+
+```
+/imagine prompt: Nike Camiseta Nike Dri-FIT product photography, white background, studio lighting, professional, commercial, high quality --ar 1:1 --v 5.2
+```
+
+---
+
+### 6. Nike Nike Air Max 270
+**Colores:** Negro, Blanco, Azul
+**Archivo sugerido:** `nike-nike-air-max-270.jpg`
+
+```
+/imagine prompt: Nike Nike Air Max 270 product photography, white background, studio lighting, professional, commercial, high quality --ar 1:1 --v 5.2
+```
+
+---
+
+### 7. Nike Pantalón Nike Tech Fleece
+**Colores:** Negro, Blanco, Azul
+**Archivo sugerido:** `nike-pantalón-nike-tech-fleece.jpg`
+
+```
+/imagine prompt: Nike Pantalón Nike Tech Fleece product photography, white background, studio lighting, professional, commercial, high quality --ar 1:1 --v 5.2
+```
+
+---
+
+### 8. Puma Puma RS-X
+**Colores:** Negro, Blanco, Azul
+**Archivo sugerido:** `puma-puma-rs-x.jpg`
+
+```
+/imagine prompt: Puma Puma RS-X product photography, white background, studio lighting, professional, commercial, high quality --ar 1:1 --v 5.2
+```
+
+---
+
+### 9. Vans Vans Old Skool
+**Colores:** Negro, Blanco, Azul
+**Archivo sugerido:** `vans-vans-old-skool.jpg`
+
+```
+/imagine prompt: Vans Vans Old Skool product photography, white background, studio lighting, professional, commercial, high quality --ar 1:1 --v 5.2
+```
+
+---

@@ -35,21 +35,21 @@ class SearchRecommendationEngine:
         
         # Buscar por nombre de producto (mayor peso)
         for term in terms:
-            productos_nombre = self.db.query(ProductoVariante).join(Producto).filter(
+            productos_nombre = self.db.query(ProductoVariante).outerjoin(Producto).filter(
                 func.lower(Producto.nombre).contains(term)
             ).all()
             productos.extend(productos_nombre)
         
         # Buscar por marca (peso medio)
         for term in terms:
-            productos_marca = self.db.query(ProductoVariante).join(Producto).filter(
+            productos_marca = self.db.query(ProductoVariante).outerjoin(Producto).filter(
                 func.lower(Producto.marca).contains(term)
             ).all()
             productos.extend(productos_marca)
         
         # Buscar por categoría
         for term in terms:
-            productos_categoria = self.db.query(ProductoVariante).join(Producto).join(Categoria).filter(
+            productos_categoria = self.db.query(ProductoVariante).outerjoin(Producto).outerjoin(Categoria).filter(
                 func.lower(Categoria.nombre).contains(term)
             ).all()
             productos.extend(productos_categoria)
@@ -79,29 +79,78 @@ class SearchRecommendationEngine:
         # Ordenar por score y limitar resultados
         sorted_products = sorted(unique_products.values(), key=lambda x: x['score'], reverse=True)
         top_products = [item['producto'] for item in sorted_products[:limit]]
-        
-        # Formatear resultados
+        # Mapa de scores por variante para asignar después
+        score_map = {item['producto'].id_variante: item['score'] for item in sorted_products}
+
+        # Formatear resultados iniciales
         formatted_products = self._format_products(top_products)
+
+        # Fallback: si no hay resultados, intentar con sinónimos/relajación
+        if not formatted_products:
+            synonym_map = {
+                'formal': ['elegante', 'traje', 'blazer', 'camisa', 'chaqueta', 'vestir', 'zapato', 'suit', 'dress', 'shirt', 'oxford', 'loafer'],
+                'ropa': ['prenda', 'indumentaria'],
+                'traje': ['suit', 'blazer', 'pantalón de vestir'],
+                'camisa': ['shirt', 'oxford'],
+                'zapato': ['loafers', 'oxford', 'calzado']
+            }
+            relaxed_terms = []
+            for t in terms:
+                relaxed_terms.extend(synonym_map.get(t, [t]))
+
+            if relaxed_terms:
+                productos_relajados = []
+                for term in relaxed_terms:
+                    # nombre
+                    productos_relajados += self.db.query(ProductoVariante).outerjoin(Producto).filter(
+                        func.lower(Producto.nombre).contains(term)
+                    ).all()
+                    # marca
+                    productos_relajados += self.db.query(ProductoVariante).outerjoin(Producto).filter(
+                        func.lower(Producto.marca).contains(term)
+                    ).all()
+                    # categoría
+                    productos_relajados += self.db.query(ProductoVariante).outerjoin(Producto).outerjoin(Categoria).filter(
+                        func.lower(Categoria.nombre).contains(term)
+                    ).all()
+                    # color
+                    productos_relajados += self.db.query(ProductoVariante).filter(
+                        func.lower(ProductoVariante.color).contains(term)
+                    ).all()
+
+                unique_relaxed = {}
+                for p in productos_relajados:
+                    if p.id_variante not in unique_relaxed:
+                        unique_relaxed[p.id_variante] = p
+                formatted_products = self._format_products(list(unique_relaxed.values())[:limit])
         
-        # Agregar información de búsqueda
+        # Agregar información de búsqueda (tolerante a tamaños)
         for i, product in enumerate(formatted_products):
-            product['search_score'] = sorted_products[i]['score']
+            product_id = product.get('id_variante')
+            product['search_score'] = score_map.get(product_id, 1.0)
             product['search_rank'] = i + 1
         
         generation_time_ms = int((time.time() - start_time) * 1000)
         
-        # Trackear la búsqueda si hay session_id
+        # Trackear la búsqueda si hay session_id (tolerante a errores/FK)
         if session_id:
-            from services.recommendation_tracker import get_recommendation_tracker
-            tracker = get_recommendation_tracker(self.db)
-            tracker.track_recommendation_generation(
-                session_id=session_id,
-                recommendation_type="busqueda",
-                filters_applied={"query": query, "terms": terms},
-                algorithm_used="search_engine",
-                recommended_products=formatted_products,
-                generation_time_ms=generation_time_ms
-            )
+            try:
+                from services.recommendation_tracker import get_recommendation_tracker
+                tracker = get_recommendation_tracker(self.db)
+                tracker.track_recommendation_generation(
+                    session_id=session_id,
+                    recommendation_type="busqueda",
+                    filters_applied={"query": query, "terms": terms},
+                    algorithm_used="search_engine",
+                    recommended_products=formatted_products,
+                    generation_time_ms=generation_time_ms
+                )
+            except Exception:
+                # Evitar que un fallo de tracking rompa la búsqueda (p.ej. sesión inexistente)
+                try:
+                    self.db.rollback()
+                except Exception:
+                    pass
         
         return formatted_products
     
@@ -109,28 +158,34 @@ class SearchRecommendationEngine:
         """Calcular score de relevancia para un producto"""
         score = 0.0
         
+        # Tomar campos con tolerancia a nulos
+        nombre_prod = (producto.producto.nombre or "").lower()
+        marca_prod = (producto.producto.marca or "").lower()
+        categoria_prod = (producto.producto.categoria.nombre if getattr(producto.producto, "categoria", None) else "").lower()
+        color_var = (producto.color or "").lower()
+
         # Score por nombre exacto
-        if full_query in producto.producto.nombre.lower():
+        if full_query in nombre_prod:
             score += 10.0
         
         # Score por términos en nombre
         for term in terms:
-            if term in producto.producto.nombre.lower():
+            if term in nombre_prod:
                 score += 5.0
         
         # Score por marca
         for term in terms:
-            if term in producto.producto.marca.lower():
+            if term in marca_prod:
                 score += 3.0
         
         # Score por categoría
         for term in terms:
-            if term in producto.producto.categoria.nombre.lower():
+            if term in categoria_prod:
                 score += 2.0
         
         # Score por color
         for term in terms:
-            if term in producto.color.lower():
+            if term in color_var:
                 score += 1.0
         
         # Bonus por precio (productos más baratos tienen ligera ventaja)
@@ -247,13 +302,13 @@ class SearchRecommendationEngine:
             {
                 "id_variante": p.id_variante,
                 "id_producto": p.id_producto,
-                "producto": p.producto.nombre,
-                "marca": p.producto.marca,
-                "categoria": p.producto.categoria.nombre,
+                "producto": (p.producto.nombre or ""),
+                "marca": (p.producto.marca or ""),
+                "categoria": (p.producto.categoria.nombre if getattr(p.producto, "categoria", None) else ""),
                 "sku": p.sku,
-                "color": p.color,
-                "talla": p.talla,
-                "precio": p.precio,
+                "color": (p.color or ""),
+                "talla": (p.talla or ""),
+                "precio": float(p.precio) if p.precio is not None else 0.0,
                 "image_url": p.image_url,
                 "created_at": p.created_at.isoformat() if p.created_at else None
             }

@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>NeoTotem AI - Dashboard Dinámico v2.0</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        /* Métricas principales */
+        .metrics-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 5px solid #28a745;
+        }
+
+        .metrics-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .range-badge {
+            background: #eef2ff;
+            color: #3f51b5;
+            border: 1px solid rgba(63,81,181,0.2);
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .metric-card h4 {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-card .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .metric-card .label {
+            font-size: 0.8em;
+            color: #888;
+        }
+
+        /* Dashboard principal */
+        .dashboard-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 5px solid #667eea;
+        }
+
+        .dashboard-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        /* Gráficos de medialuna */
+        .gauges-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .gauge-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 
+                0 8px 25px rgba(0,0,0,0.1),
+                0 4px 10px rgba(0,0,0,0.05);
+            text-align: center;
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .gauge-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 12px 35px rgba(0,0,0,0.15),
+                0 6px 15px rgba(0,0,0,0.08);
+        }
+
+        .gauge-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .gauge-semicircle {
+            width: 220px;
+            height: 110px;
+            position: relative;
+            margin: 15px auto;
+            overflow: hidden;
+        }
+
+        .gauge-semicircle::before {
+            content: '';
+            position: absolute;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: conic-gradient(from 180deg,
+                #dc3545 0deg 115deg,   /* Verde (más área) */
+                #ffc107 105deg 135deg, /* Amarillo pegado a rojo */
+                #28a745 135deg 180deg  /* Rojo */
+            );
+            transform: rotate(0deg);
+            top: 0;
+            left: 0;
+            box-shadow: 
+                inset 0 0 20px rgba(0,0,0,0.15),
+                0 0 20px rgba(0,0,0,0.1);
+            border: 3px solid rgba(255,255,255,0.8);
+        }
+
+        .gauge-semicircle::after {
+            content: '';
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            top: 30px;
+            left: 30px;
+            box-shadow: 
+                0 0 15px rgba(0,0,0,0.1),
+                inset 0 0 10px rgba(0,0,0,0.05);
+            border: 2px solid rgba(0,0,0,0.05);
+        }
+
+        .gauge-needle {
+            width: 4px;
+            height: 80px;
+            background: linear-gradient(to bottom, #2c3e50 0%, #34495e 100%);
+            border-radius: 2px;
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform-origin: top center;
+            transform: translateX(-50%) rotate(90deg);
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 5; /* Por debajo del semicírculo */
+            box-shadow: 
+                0 0 8px rgba(44, 62, 80, 0.4),
+                0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .gauge-needle::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 20px solid #2c3e50;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .gauge-center {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 50%;
+            top: 94px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20; /* Por encima de todo para que se vea */
+            box-shadow: 
+                0 0 8px rgba(44, 62, 80, 0.6),
+                0 2px 4px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.8);
+        }
+
+        .gauge-value {
+            font-size: 2.2em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-top: 15px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            letter-spacing: -0.5px;
+        }
+
+        /* Gráficos Chart.js */
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            height: 300px;
+        }
+
+        .chart-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+            text-align: center;
+        }
+
+        /* Lista de productos */
+        .products-list {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .product-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .product-item:last-child {
+            border-bottom: none;
+        }
+
+        .product-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .product-clicks {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        /* Estado de conexión */
+        .status-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+
+        .status-indicator.disconnected {
+            background: #dc3545;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .gauges-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="status-indicator" id="statusIndicator">
+        🔗 Conectado
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>📊 Dashboard Dinámico</h1>
+            <p>Métricas Clave del Negocio - NeoTotem AI</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Métricas principales -->
+            <div class="metrics-section">
+                <div class="metrics-title" style="justify-content: space-between;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        📈 Métricas Clave del Negocio
+                        <span id="rangeBadge" class="range-badge">Día</span>
+                    </div>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <span style="font-weight:600; color:#2c3e50;">Rango:</span>
+                        <select id="rangeSelectTop" style="padding:6px 10px; border-radius:8px; border:1px solid #e1e5ee; background:#fff; color:#2c3e50;">
+                            <option value="day" selected>Día</option>
+                            <option value="week">Semana</option>
+                            <option value="month">Mes</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <h4>Sesiones Iniciadas</h4>
+                        <div class="value" id="sessions-started">0</div>
+                        <div class="label" id="sessions-range-label">Hoy</div>
+                    </div>
+                    <div class="metric-card">
+                        <h4>Duración Promedio</h4>
+                        <div class="value" id="avg-duration">0 min</div>
+                        <div class="label">Por sesión</div>
+                    </div>
+                    <div class="metric-card">
+                        <h4>Recomendaciones Aceptadas</h4>
+                        <div class="value" id="acceptance-rate">0.0%</div>
+                        <div class="label">Tasa de aceptación</div>
+                    </div>
+                    <div class="metric-card">
+                        <h4>Calificación Promedio</h4>
+                        <div class="value" id="avg-rating">0</div>
+                        <div class="label">Después de recomendación</div>
+                    </div>
+                    <div class="metric-card">
+                        <h4>Ventas Influenciadas</h4>
+                        <div class="value" id="sales-rate">0.0%</div>
+                        <div class="label">Por el tótem</div>
+                    </div>
+                    <div class="metric-card">
+                        <h4>Productos Más Vistos</h4>
+                        <div class="value" id="most-viewed-count">0</div>
+                        <div class="label" id="most-viewed-range-label">Hoy</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard principal -->
+            <div class="dashboard-section">
+                <div class="dashboard-title">
+                    📊 Análisis en Tiempo Real
+                </div>
+                <div class="dashboard-grid">
+                    <!-- Columna izquierda: Gráficos de medialuna -->
+                    <div>
+                        
+                        <div class="gauges-container">
+                            <div class="gauge-card">
+                                <div class="gauge-title">Tasa de Aceptación</div>
+                                <div class="gauge-semicircle">
+                                    <div class="gauge-needle" id="acceptance-needle"></div>
+                                    <div class="gauge-center"></div>
+                                </div>
+                                <div class="gauge-value" id="acceptance-gauge-value">0.0%</div>
+                            </div>
+                            
+                            <div class="gauge-card">
+                                <div class="gauge-title">Calificación Promedio</div>
+                                <div class="gauge-semicircle">
+                                    <div class="gauge-needle" id="rating-needle"></div>
+                                    <div class="gauge-center"></div>
+                                </div>
+                                <div class="gauge-value" id="rating-gauge-value">0</div>
+                            </div>
+                            
+                            <div class="gauge-card">
+                                <div class="gauge-title">Ventas Influenciadas</div>
+                                <div class="gauge-semicircle">
+                                    <div class="gauge-needle" id="sales-needle"></div>
+                                    <div class="gauge-center"></div>
+                                </div>
+                                <div class="gauge-value" id="sales-gauge-value">0.0%</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Lista de productos más vistos -->
+                        <div class="products-list">
+                            <div class="chart-title">👁️ Productos Más Vistos</div>
+                            <div id="most-viewed-list">
+                                <div style="text-align: center; color: #666; padding: 20px;">
+                                    Cargando productos...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Columna derecha: Gráficos Chart.js -->
+                    <div>
+                        <div class="chart-container">
+                            <div class="chart-title" id="conversionsChartTitle">📈 Conversiones por Hora</div>
+                            <canvas id="conversionsChart"></canvas>
+                        </div>
+                        
+                        <div class="chart-container" style="margin-top: 20px;">
+                            <div class="chart-title">🎯 Productos Más Clickeados</div>
+                            <canvas id="productsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let conversionsChart, productsChart;
+        let isConnected = true;
+
+        // Inicializar gráficos
+        function initCharts() {
+            console.log('🎨 Inicializando gráficos...');
+            
+            // Gráfico de conversiones por hora
+            const conversionsCtx = document.getElementById('conversionsChart').getContext('2d');
+            console.log('📊 Contexto de conversiones:', conversionsCtx);
+            
+            conversionsChart = new Chart(conversionsCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Conversiones',
+                        data: [],
+                        backgroundColor: '#667eea',
+                        borderColor: '#667eea',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            console.log('✅ Gráfico de conversiones inicializado:', conversionsChart);
+
+            // Gráfico de productos más clickeados
+            const productsCtx = document.getElementById('productsChart').getContext('2d');
+            console.log('📈 Contexto de productos:', productsCtx);
+            
+            productsChart = new Chart(productsCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Clics',
+                        data: [],
+                        backgroundColor: [
+                            '#667eea',
+                            '#764ba2',
+                            '#f093fb',
+                            '#f5576c',
+                            '#4facfe'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            console.log('✅ Gráfico de productos inicializado:', productsChart);
+        }
+
+        // Actualizar gráficos de medialuna (orientación hacia abajo)
+        function updateGauge(needleId, value, min, max) {
+            const needle = document.getElementById(needleId);
+            if (needle) {
+                const percentage = (value - min) / (max - min);
+                // Centrar la aguja: 0% = 90°, 50% = 180°, 100% = 270°
+                const angle = 90 + (percentage * 180); // 90° to 270° for downward semicircle
+                needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
+            }
+        }
+
+        // Actualizar métricas en tiempo real
+        function updateRealTimeMetrics(data) {
+            console.log('📊 Datos recibidos:', data);
+            
+            if (data) {
+                // Mostrar rango seleccionado
+                try {
+                    const period = data.period || (document.getElementById('rangeSelectTop')?.value);
+                    const nice = period === 'week' ? 'Semana' : period === 'month' ? 'Mes' : 'Día';
+                    const badge = document.getElementById('rangeBadge');
+                    if (badge) badge.textContent = nice;
+                    const sessLbl = document.getElementById('sessions-range-label');
+                    if (sessLbl) sessLbl.textContent = nice === 'Día' ? 'Hoy' : nice;
+                    const mvLbl = document.getElementById('most-viewed-range-label');
+                    if (mvLbl) mvLbl.textContent = nice === 'Día' ? 'Hoy' : nice;
+                    
+                    // Actualizar título del gráfico dinámicamente
+                    const chartTitle = document.getElementById('conversionsChartTitle');
+                    if (chartTitle && data.chart_title) {
+                        chartTitle.textContent = `📈 ${data.chart_title}`;
+                    }
+                } catch (e) { console.log('range labels skip', e); }
+                // Actualizar métricas principales
+                document.getElementById('sessions-started').textContent = data.business_metrics?.sessions_started_today || 0;
+                document.getElementById('avg-duration').textContent = `${data.business_metrics?.avg_session_duration_minutes || 0} min`;
+                document.getElementById('acceptance-rate').textContent = `${(data.business_metrics?.recommendation_acceptance_rate * 100 || 0).toFixed(1)}%`;
+                document.getElementById('avg-rating').textContent = data.business_metrics?.avg_rating || 0.0;
+                document.getElementById('sales-rate').textContent = `${(data.business_metrics?.influenced_sales_rate * 100 || 0).toFixed(1)}%`;
+                document.getElementById('most-viewed-count').textContent = data.most_viewed_products?.length || 0;
+                
+                // Actualizar gráficos de medialuna
+                updateGauge('acceptance-needle', data.business_metrics?.recommendation_acceptance_rate * 100 || 0, 0, 100);
+                updateGauge('rating-needle', data.business_metrics?.avg_rating || 0, 0, 5);
+                updateGauge('sales-needle', data.business_metrics?.influenced_sales_rate * 100 || 0, 0, 100);
+                
+                // Actualizar valores de los gauges
+                document.getElementById('acceptance-gauge-value').textContent = `${(data.business_metrics?.recommendation_acceptance_rate * 100 || 0).toFixed(1)}%`;
+                document.getElementById('rating-gauge-value').textContent = data.business_metrics?.avg_rating || 0.0;
+                document.getElementById('sales-gauge-value').textContent = `${(data.business_metrics?.influenced_sales_rate * 100 || 0).toFixed(1)}%`;
+                
+                // Actualizar lista de productos más vistos
+                if (data.most_viewed_products) {
+                    updateMostViewedProducts(data.most_viewed_products);
+                }
+                
+                // Actualizar gráficos Chart.js con logs de debug
+                console.log('🔄 Verificando datos para gráficos...');
+                console.log('📊 hourly_conversions:', data.hourly_conversions);
+                console.log('📈 top_products:', data.top_products);
+                
+                if (data.hourly_conversions) {
+                    console.log('✅ Actualizando gráfico de conversiones');
+                    updateConversionsChart(data.hourly_conversions);
+                } else {
+                    console.log('❌ No hay datos de hourly_conversions');
+                }
+                
+                if (data.top_products) {
+                    console.log('✅ Actualizando gráfico de productos');
+                    updateProductsChart(data.top_products);
+                } else {
+                    console.log('❌ No hay datos de top_products');
+                }
+            }
+        }
+
+        // Actualizar lista de productos más vistos
+        function updateMostViewedProducts(products) {
+            const container = document.getElementById('most-viewed-list');
+            container.innerHTML = '';
+            
+            if (products.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No hay datos disponibles</div>';
+                return;
+            }
+            
+            products.slice(0, 5).forEach((product, index) => {
+                const productDiv = document.createElement('div');
+                productDiv.className = 'product-item';
+                productDiv.innerHTML = `
+                    <div>
+                        <span class="product-name">${index + 1}. ${product.producto}</span>
+                    </div>
+                    <div class="product-clicks">${product.vistas} vistas</div>
+                `;
+                container.appendChild(productDiv);
+            });
+        }
+
+        // Actualizar gráfico de conversiones
+        function updateConversionsChart(hourlyData) {
+            console.log('📊 Actualizando gráfico de conversiones:', hourlyData);
+            console.log('📊 Gráfico de conversiones existe:', !!conversionsChart);
+            
+            if (!conversionsChart) {
+                console.error('❌ Gráfico de conversiones no está inicializado');
+                return;
+            }
+            
+            const hours = [];
+            const conversions = [];
+            
+            // Procesar datos del formato {hour: "23:00", conversions: 16}
+            hourlyData.forEach(item => {
+                hours.push(item.hour);
+                conversions.push(item.conversions);
+            });
+            
+            console.log('📊 Horas:', hours);
+            console.log('📊 Conversiones:', conversions);
+            
+            conversionsChart.data.labels = hours;
+            conversionsChart.data.datasets[0].data = conversions;
+            conversionsChart.update();
+            console.log('✅ Gráfico de conversiones actualizado');
+        }
+
+        // Actualizar gráfico de productos
+        function updateProductsChart(products) {
+            console.log('📈 Actualizando gráfico de productos:', products);
+            console.log('📈 Gráfico de productos existe:', !!productsChart);
+            
+            if (!productsChart) {
+                console.error('❌ Gráfico de productos no está inicializado');
+                return;
+            }
+            
+            const labels = products.slice(0, 5).map(p => p.product);
+            const data = products.slice(0, 5).map(p => p.clicks);
+            
+            console.log('📈 Labels:', labels);
+            console.log('📈 Data:', data);
+            
+            productsChart.data.labels = labels;
+            productsChart.data.datasets[0].data = data;
+            productsChart.update();
+            console.log('✅ Gráfico de productos actualizado');
+        }
+
+        // Cargar datos iniciales
+        async function loadInitialData() {
+            try {
+                const range = document.getElementById('rangeSelectTop')?.value || 'day';
+                const response = await fetch(`/dashboard/metrics/live?period=${range}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    updateRealTimeMetrics(data);
+                    updateConnectionStatus(true);
+                } else {
+                    throw new Error('Error en la respuesta');
+                }
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                updateConnectionStatus(false);
+            }
+        }
+
+        // Actualizar estado de conexión
+        function updateConnectionStatus(connected) {
+            isConnected = connected;
+            const indicator = document.getElementById('statusIndicator');
+            if (connected) {
+                indicator.textContent = '🔗 Conectado';
+                indicator.className = 'status-indicator';
+            } else {
+                indicator.textContent = '❌ Desconectado';
+                indicator.className = 'status-indicator disconnected';
+            }
+        }
+
+        // Actualizaciones en tiempo real - Solo cuando hay actividad real
+        let lastUpdateTime = Date.now();
+        let hasRealActivity = false;
+        
+        function startRealTimeUpdates() {
+            // Actualizar solo cada 2 minutos para datos más creíbles
+            setInterval(async () => {
+                try {
+                    // Solo actualizar si ha pasado suficiente tiempo o hay actividad real
+                    const now = Date.now();
+                    const timeSinceLastUpdate = now - lastUpdateTime;
+                    
+                    // Actualizar solo si han pasado al menos 2 minutos o hay actividad real
+                    if (timeSinceLastUpdate >= 120000 || hasRealActivity) {
+                        const range = document.getElementById('rangeSelectTop')?.value || 'day';
+                        const response = await fetch(`/dashboard/metrics/live?period=${range}`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            updateRealTimeMetrics(data);
+                            updateConnectionStatus(true);
+                            lastUpdateTime = now;
+                            hasRealActivity = false; // Reset flag
+                        } else {
+                            throw new Error('Error en la respuesta');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error en actualización:', error);
+                    updateConnectionStatus(false);
+                }
+            }, 30000); // Verificar cada 30 segundos, pero actualizar solo cuando sea necesario
+        }
+        
+        // Función para marcar actividad real (llamada desde eventos del usuario)
+        function markRealActivity() {
+            hasRealActivity = true;
+            console.log('🎯 Actividad real detectada - próxima actualización será inmediata');
+        }
+
+        // Inicializar aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            initCharts();
+            loadInitialData();
+            startRealTimeUpdates();
+            const syncAndLoad = () => {
+                const top = document.getElementById('rangeSelectTop');
+                if (top) {
+                    // Mantener ambos selects sincronizados si existiera otro
+                    const other = document.getElementById('rangeSelect');
+                    if (other) other.value = top.value;
+                }
+                loadInitialData();
+            };
+            const rangeSelectTop = document.getElementById('rangeSelectTop');
+            if (rangeSelectTop) {
+                rangeSelectTop.addEventListener('change', () => {
+                    markRealActivity(); // Marcar actividad real al cambiar rango
+                    syncAndLoad();
+                });
+            }
+            
+            // Marcar actividad real en interacciones del usuario
+            document.addEventListener('click', markRealActivity);
+            document.addEventListener('scroll', markRealActivity);
+            document.addEventListener('mousemove', () => {
+                // Solo marcar actividad de mouse ocasionalmente para no ser demasiado agresivo
+                if (Math.random() < 0.1) {
+                    markRealActivity();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

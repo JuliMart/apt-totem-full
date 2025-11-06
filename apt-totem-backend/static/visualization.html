@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoTotem AI - Visualización en Tiempo Real</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+        
+        .dashboard-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+        
+        .image-section {
+            position: relative;
+        }
+        
+        .main-image {
+            width: 100%;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        
+        .detection-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .detection-box {
+            position: absolute;
+            border: 3px solid;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
+            padding: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            color: white;
+        }
+        
+        .clothing-box {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.2);
+        }
+        
+        .color-box {
+            border-color: #FF9800;
+            background: rgba(255, 152, 0, 0.2);
+        }
+        
+        .accessory-box {
+            border-color: #9C27B0;
+            background: rgba(156, 39, 176, 0.2);
+        }
+        
+        .face-box {
+            border-color: #2196F3;
+            background: rgba(33, 150, 243, 0.2);
+        }
+        
+        .info-panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            height: fit-content;
+        }
+        
+        .info-section {
+            margin-bottom: 25px;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid;
+        }
+        
+        .clothing-info {
+            background: #e8f5e8;
+            border-left-color: #4CAF50;
+        }
+        
+        .color-info {
+            background: #fff3e0;
+            border-left-color: #FF9800;
+        }
+        
+        .accessory-info {
+            background: #f3e5f5;
+            border-left-color: #9C27B0;
+        }
+        
+        .face-info {
+            background: #e3f2fd;
+            border-left-color: #2196F3;
+        }
+        
+        .info-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-item {
+            margin: 5px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .confidence-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4444, #ffaa00, #44ff44);
+            transition: width 0.3s ease;
+        }
+        
+        .status-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        
+        .status-connected {
+            background: #4CAF50;
+        }
+        
+        .status-disconnected {
+            background: #f44336;
+        }
+        
+        .status-analyzing {
+            background: #ff9800;
+        }
+        
+        .no-image {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 400px;
+            background: #f5f5f5;
+            border-radius: 15px;
+            color: #666;
+            font-size: 1.2em;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .debug-info {
+            position: relative;
+            margin: 20px auto;
+            max-width: 1400px;
+            background: rgba(0,0,0,0.9);
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            border: 2px solid #00ff00;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+        
+        .debug-info > div:first-child {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+        }
+        
+        #debugMessages div {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(0,255,0,0.2);
+        }
+        
+        .rating-star {
+            font-size: 2em;
+            color: #ddd;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        
+        .rating-star:hover,
+        .rating-star.active {
+            color: #ffc107;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="status-indicator" id="statusIndicator">
+        <span id="statusText">Conectando...</span>
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🤖 NeoTotem AI - Visualización en Tiempo Real</h1>
+            <p>Veamos exactamente lo que detecta la Inteligencia Artificial</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="image-section">
+                <div id="imageContainer">
+                    <div class="no-image">
+                        <div class="loading"></div>
+                        <span style="margin-left: 10px;">Esperando imagen de la cámara...</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <div class="info-section clothing-info">
+                    <div class="info-title">
+                        👕 Vestimenta Superior
+                    </div>
+                    <div class="info-item">
+                        <strong>Prenda:</strong> <span id="clothingItem">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Estilo:</strong> <span id="clothingStyle">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Confianza:</strong> <span id="clothingConfidence">-</span>%
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="clothingConfidenceBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-section color-info">
+                    <div class="info-title">
+                        🎨 Análisis de Color
+                    </div>
+                    <div class="info-item">
+                        <strong>Color Principal:</strong> <span id="primaryColor">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Color Secundario:</strong> <span id="secondaryColor">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Confianza:</strong> <span id="colorConfidence">-</span>%
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="colorConfidenceBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-section accessory-info">
+                    <div class="info-title">
+                        👓  
+                    </div>
+                    <div class="info-item">
+                        <strong>Accesorio:</strong> <span id="accessoryItem">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Confianza:</strong> <span id="accessoryConfidence">-</span>%
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="accessoryConfidenceBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-section" style="background: linear-gradient(135deg, #e0f7fa 0%, #80deea 100%);">
+                    <div class="info-title">
+                        👜 Carteras/Bolsos
+                    </div>
+                    <div class="info-item">
+                        <strong>Tipo:</strong> <span id="bagItem">-</span>
+                    </div>
+                </div>
+                
+                <div class="info-section face-info">
+                    <div class="info-title">
+                        👤 Análisis Facial
+                    </div>
+                    <div class="info-item">
+                        <strong>Edad Estimada:</strong> <span id="ageRange">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Persona Detectada:</strong> <span id="personDetected">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Confianza:</strong> <span id="faceConfidence">-</span>%
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" id="faceConfidenceBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-section" style="background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);">
+                    <div class="info-title">
+                        🎯 Recomendaciones Inteligentes
+                    </div>
+                    <div class="info-item">
+                        <button id="generateRecommendationBtn" onclick="generateRecommendation()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; margin: 10px 0;">
+                            🚀 Generar Recomendación
+                        </button>
+                    </div>
+                    <div class="info-item" id="recommendationDisplay" style="display: none;">
+                        <div style="background: white; padding: 15px; border-radius: 10px; margin: 15px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <strong>Producto:</strong> <span id="recommendedProduct">-</span><br>
+                            <strong>Marca:</strong> <span id="recommendedBrand">-</span><br>
+                            <strong>Precio:</strong> <span id="recommendedPrice">-</span><br>
+                            <strong>Confianza:</strong> <span id="recommendedConfidence">-</span>%
+                        </div>
+                        <button id="rateRecommendationBtn" onclick="openRatingModal()" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; margin: 10px 0;">
+                            ⭐ Calificar Esta Recomendación
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="debug-info" id="debugInfo">
+        <div>🔍 Debug Info:</div>
+        <div id="debugMessages"></div>
+    </div>
+
+    <!-- Modal de Calificación -->
+    <div id="ratingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 20px; padding: 40px; max-width: 500px; width: 90%; position: relative; animation: modalSlideIn 0.3s ease;">
+            <button onclick="closeRatingModal()" style="position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 2em; cursor: pointer; color: #666;">×</button>
+            
+            <h2 style="color: #333; margin-bottom: 20px; text-align: center;">⭐ Calificar Recomendación</h2>
+            <p style="color: #666; margin-bottom: 30px; text-align: center;">¿Qué te pareció esta recomendación?</p>
+            
+            <div style="background: #e3f2fd; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                <h4 style="color: #1976d2; margin-bottom: 10px;">🤖 Modal Automático</h4>
+                <p style="color: #666; font-size: 0.9em;">Este modal se abrió automáticamente después de generar una recomendación.</p>
+            </div>
+            
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                <div style="font-weight: 600; color: #333;" id="modalProductName">-</div>
+                <div style="color: #666; font-size: 0.9em;" id="modalProductDetails">-</div>
+            </div>
+            
+            <div style="display: flex; justify-content: center; gap: 10px; margin: 20px 0;">
+                <span class="rating-star" data-rating="1" onclick="setRating(1)">★</span>
+                <span class="rating-star" data-rating="2" onclick="setRating(2)">★</span>
+                <span class="rating-star" data-rating="3" onclick="setRating(3)">★</span>
+                <span class="rating-star" data-rating="4" onclick="setRating(4)">★</span>
+                <span class="rating-star" data-rating="5" onclick="setRating(5)">★</span>
+            </div>
+            
+            <div id="ratingText" style="text-align: center; color: #666; margin: 15px 0;">Selecciona una calificación</div>
+            
+            <textarea 
+                id="ratingComment" 
+                placeholder="Cuéntanos qué te pareció la recomendación..."
+                style="width: 100%; padding: 15px; border: 2px solid #e9ecef; border-radius: 10px; resize: vertical; min-height: 80px; margin: 20px 0; font-family: inherit; box-sizing: border-box;"
+            ></textarea>
+            
+            <button onclick="submitRating()" style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-weight: 600; width: 100%; font-size: 1.1em;">
+                Enviar Calificación
+            </button>
+            
+            <div id="ratingSuccess" style="display: none; background: #d4edda; color: #155724; padding: 15px; border-radius: 10px; margin: 20px 0; text-align: center;">
+                ✅ ¡Calificación enviada exitosamente! Gracias por tu feedback.
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+    </style>
+
+    <script>
+        class NeoTotemVisualizer {
+            constructor() {
+                this.ws = null;
+                this.isConnected = false;
+                this.isAnalyzing = false;
+                this.messageCount = 0;
+                this.lastUpdateTime = 0;
+                this.minUpdateInterval = 500; // Mínimo 500ms entre actualizaciones (2 FPS)
+                this.pendingUpdate = null;
+                this.droppedFrames = 0;
+                this.init();
+            }
+            
+            init() {
+                this.connectWebSocket();
+                this.updateStatus('Conectando...', 'status-disconnected');
+                this.addDebugMessage('Iniciando conexión WebSocket...');
+            }
+            
+            connectWebSocket() {
+                const wsUrl = 'ws://localhost:8001/ws';
+                this.addDebugMessage(`Conectando a: ${wsUrl}`);
+                this.ws = new WebSocket(wsUrl);
+                
+                this.ws.onopen = () => {
+                    this.isConnected = true;
+                    this.updateStatus('Conectado - Esperando análisis', 'status-connected');
+                    this.addDebugMessage('✅ WebSocket conectado');
+                    console.log('✅ Conectado al WebSocket');
+                };
+                
+                this.ws.onmessage = (event) => {
+                    this.messageCount++;
+                    this.addDebugMessage(`📨 Mensaje #${this.messageCount} recibido`);
+                    try {
+                        const data = JSON.parse(event.data);
+                        this.handleMessage(data);
+                    } catch (e) {
+                        this.addDebugMessage(`❌ Error parsing: ${e.message}`);
+                        console.error('Error parsing message:', e);
+                    }
+                };
+                
+                this.ws.onclose = () => {
+                    this.isConnected = false;
+                    this.updateStatus('Desconectado', 'status-disconnected');
+                    this.addDebugMessage('❌ WebSocket desconectado');
+                    console.log('❌ WebSocket desconectado');
+                    
+                    // Reconectar después de 3 segundos
+                    setTimeout(() => {
+                        if (!this.isConnected) {
+                            this.addDebugMessage('🔄 Intentando reconectar...');
+                            this.connectWebSocket();
+                        }
+                    }, 3000);
+                };
+                
+                this.ws.onerror = (error) => {
+                    this.addDebugMessage(`❌ WebSocket error: ${error}`);
+                    console.error('WebSocket error:', error);
+                    this.updateStatus('Error de conexión', 'status-disconnected');
+                };
+            }
+            
+            handleMessage(data) {
+                this.addDebugMessage(`📊 Tipo: ${data.type}`);
+                
+                switch (data.type) {
+                    case 'connected':
+                        this.updateStatus('Conectado - Esperando análisis', 'status-connected');
+                        this.addDebugMessage('🎉 Conexión establecida');
+                        break;
+                        
+                    case 'realtime_analysis':
+                        // THROTTLING: Solo actualizar si ha pasado el intervalo mínimo
+                        const now = Date.now();
+                        const timeSinceLastUpdate = now - this.lastUpdateTime;
+                        
+                        if (timeSinceLastUpdate < this.minUpdateInterval) {
+                            // Demasiado pronto - guardar para después y dropear
+                            this.droppedFrames++;
+                            this.pendingUpdate = { analysis: data.analysis, image: data.annotated_image };
+                            this.addDebugMessage(`⏸️ Frame dropeado (${this.droppedFrames} total) - muy rápido`);
+                            return;
+                        }
+                        
+                        // Actualizar ahora
+                        this.lastUpdateTime = now;
+                        this.updateStatus('Analizando...', 'status-analyzing');
+                        this.addDebugMessage(`🔍 Procesando análisis (FPS real: ${(1000/timeSinceLastUpdate).toFixed(1)})`);
+                        this.displayAnalysis(data.analysis, data.annotated_image);
+                        break;
+                        
+                    case 'analysis_error':
+                        this.updateStatus('Error en análisis', 'status-disconnected');
+                        this.addDebugMessage(`❌ Error: ${data.error}`);
+                        console.error('Error de análisis:', data.error);
+                        break;
+                        
+                    case 'pong':
+                    case 'keepalive':
+                        // Ignorar pings/keepalive en logs
+                        break;
+                        
+                    default:
+                        this.addDebugMessage(`❓ Tipo desconocido: ${data.type}`);
+                }
+            }
+            
+            displayAnalysis(analysis, annotatedImage) {
+                this.addDebugMessage('📊 Actualizando análisis...');
+                
+                // Usar requestAnimationFrame para optimizar actualizaciones DOM
+                requestAnimationFrame(() => {
+                    // Actualizar información de vestimenta
+                    document.getElementById('clothingItem').textContent = analysis.clothing_item || '-';
+                    document.getElementById('clothingStyle').textContent = analysis.clothing_style || '-';
+                    document.getElementById('clothingConfidence').textContent = Math.round((analysis.detection_confidence || 0) * 100);
+                    document.getElementById('clothingConfidenceBar').style.width = `${(analysis.detection_confidence || 0) * 100}%`;
+                    
+                    // Actualizar información de color
+                    document.getElementById('primaryColor').textContent = analysis.primary_color || '-';
+                    document.getElementById('secondaryColor').textContent = analysis.secondary_color || '-';
+                    document.getElementById('colorConfidence').textContent = Math.round((analysis.detection_confidence || 0) * 100);
+                    document.getElementById('colorConfidenceBar').style.width = `${(analysis.detection_confidence || 0) * 100}%`;
+                    
+                    // Actualizar información de accesorios
+                    document.getElementById('accessoryItem').textContent = analysis.head_accessory || '-';
+                    document.getElementById('accessoryConfidence').textContent = Math.round((analysis.accessory_confidence || 0) * 100);
+                    document.getElementById('accessoryConfidenceBar').style.width = `${(analysis.accessory_confidence || 0) * 100}%`;
+                    
+                    // Actualizar información de carteras/bolsos
+                    document.getElementById('bagItem').textContent = analysis.bag_accessory || '-';
+                    
+                    // Actualizar información facial
+                    document.getElementById('ageRange').textContent = analysis.age_range || '-';
+                    document.getElementById('personDetected').textContent = analysis.person_detected ? 'Sí' : 'No';
+                    document.getElementById('faceConfidence').textContent = Math.round((analysis.detection_confidence || 0) * 100);
+                    document.getElementById('faceConfidenceBar').style.width = `${(analysis.detection_confidence || 0) * 100}%`;
+                });
+                
+                // Mostrar imagen anotada si está disponible
+                if (annotatedImage) {
+                    this.addDebugMessage('📷 Mostrando imagen con detecciones visuales');
+                    this.displayImage(annotatedImage);
+                } else {
+                    this.addDebugMessage('⚠️ Sin imagen anotada disponible');
+                }
+                
+                this.updateStatus('Análisis completado', 'status-connected');
+                this.addDebugMessage('✅ Análisis actualizado');
+            }
+            
+            displayImage(annotatedImageBase64) {
+                const imageContainer = document.getElementById('imageContainer');
+                
+                if (annotatedImageBase64) {
+                    // Mostrar imagen anotada real con detecciones visuales
+                    imageContainer.innerHTML = `
+                        <img src="data:image/jpeg;base64,${annotatedImageBase64}" 
+                             class="main-image" 
+                             alt="Computer Vision - Detecciones en Tiempo Real"
+                             style="object-fit: contain;">
+                        <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px;">
+                            🤖 Computer Vision en Crudo - MediaPipe + OpenCV
+                        </div>
+                    `;
+                } else {
+                    // Placeholder si no hay imagen
+                    imageContainer.innerHTML = `
+                        <div class="no-image">
+                            <div class="loading"></div>
+                            <span style="margin-left: 10px;">Esperando imagen de la cámara...</span>
+                        </div>
+                    `;
+                }
+            }
+            
+            updateStatus(text, className) {
+                const statusIndicator = document.getElementById('statusIndicator');
+                const statusText = document.getElementById('statusText');
+                
+                statusText.textContent = text;
+                statusIndicator.className = `status-indicator ${className}`;
+            }
+            
+            addDebugMessage(message) {
+                const debugMessages = document.getElementById('debugMessages');
+                const timestamp = new Date().toLocaleTimeString();
+                const messageElement = document.createElement('div');
+                messageElement.textContent = `[${timestamp}] ${message}`;
+                debugMessages.appendChild(messageElement);
+                
+                // Mantener solo los últimos 10 mensajes
+                while (debugMessages.children.length > 10) {
+                    debugMessages.removeChild(debugMessages.firstChild);
+                }
+                
+                // Scroll al final
+                debugMessages.scrollTop = debugMessages.scrollHeight;
+            }
+        }
+        
+        // Variables globales para recomendaciones y calificaciones
+        let currentRecommendation = null;
+        let selectedRating = 0;
+        
+        // Función para generar recomendación
+        async function generateRecommendation() {
+            const btn = document.getElementById('generateRecommendationBtn');
+            const display = document.getElementById('recommendationDisplay');
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Generando...';
+            
+            try {
+                const response = await fetch('/demo-simple/generar-recomendacion?session_id=visualization-session');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentRecommendation = data;
+                    
+                    // Mostrar recomendación
+                    document.getElementById('recommendedProduct').textContent = data.producto;
+                    document.getElementById('recommendedBrand').textContent = data.marca;
+                    document.getElementById('recommendedPrice').textContent = `$${data.precio.toLocaleString()}`;
+                    document.getElementById('recommendedConfidence').textContent = (data.confianza * 100).toFixed(1);
+                    
+                    display.style.display = 'block';
+                    
+                    // Scroll a la recomendación
+                    display.scrollIntoView({ behavior: 'smooth' });
+                    
+                    console.log('✅ Recomendación generada:', data);
+                } else {
+                    throw new Error('Error generando recomendación');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error generando recomendación. Inténtalo de nuevo.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🚀 Generar Recomendación';
+            }
+        }
+        
+        // Función para abrir el modal de calificación
+        function openRatingModal() {
+            if (!currentRecommendation) {
+                alert('Primero genera una recomendación');
+                return;
+            }
+            
+            // Actualizar información del modal
+            document.getElementById('modalProductName').textContent = currentRecommendation.producto;
+            document.getElementById('modalProductDetails').textContent = `${currentRecommendation.marca} - $${currentRecommendation.precio.toLocaleString()}`;
+            
+            // Reset rating
+            selectedRating = 0;
+            document.querySelectorAll('.rating-star').forEach(star => {
+                star.classList.remove('active');
+            });
+            document.getElementById('ratingText').textContent = 'Selecciona una calificación';
+            document.getElementById('ratingComment').value = '';
+            document.getElementById('ratingSuccess').style.display = 'none';
+            
+            // Mostrar modal
+            document.getElementById('ratingModal').style.display = 'flex';
+        }
+        
+        // Función para cerrar el modal de calificación
+        function closeRatingModal() {
+            document.getElementById('ratingModal').style.display = 'none';
+        }
+        
+        // Función para establecer calificación
+        function setRating(rating) {
+            selectedRating = rating;
+            
+            // Actualizar estrellas visualmente
+            const stars = document.querySelectorAll('.rating-star');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+            
+            // Actualizar texto
+            const texts = {
+                1: 'Muy malo',
+                2: 'Malo', 
+                3: 'Regular',
+                4: 'Bueno',
+                5: 'Excelente'
+            };
+            
+            document.getElementById('ratingText').textContent = texts[rating];
+        }
+        
+        // Función para enviar calificación
+        async function submitRating() {
+            if (selectedRating === 0) {
+                alert('Por favor selecciona una calificación');
+                return;
+            }
+            
+            if (!currentRecommendation) {
+                alert('No hay recomendación para calificar');
+                return;
+            }
+            
+            const btn = document.getElementById('submitRatingBtn');
+            const successDiv = document.getElementById('ratingSuccess');
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Enviando...';
+            
+            try {
+                const response = await fetch('/calificaciones/calificar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id_sesion: 'visualization-session',
+                        id_recomendacion: currentRecommendation.id_recomendacion,
+                        calificacion: selectedRating,
+                        comentario: document.getElementById('ratingComment').value.trim() || null
+                    })
+                });
+                
+                if (response.ok) {
+                    successDiv.style.display = 'block';
+                    
+                    // Cerrar modal después de 2 segundos
+                    setTimeout(() => {
+                        closeRatingModal();
+                    }, 2000);
+                    
+                    console.log('✅ Calificación enviada exitosamente');
+                } else {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                
+            } catch (error) {
+                console.error('Error enviando calificación:', error);
+                alert('Error enviando calificación. Inténtalo de nuevo.');
+                btn.disabled = false;
+                btn.textContent = 'Enviar Calificación';
+            }
+        }
+        
+        // Función para crear sesión de visualización
+        async function createVisualizationSession() {
+            try {
+                const response = await fetch('/visualization-session/create', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Sesión de visualización creada:', data);
+                } else {
+                    console.log('⚠️ Sesión ya existe o error:', response.status);
+                }
+            } catch (error) {
+                console.error('Error creando sesión:', error);
+            }
+        }
+        
+        // Cerrar modal con Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeRatingModal();
+            }
+        });
+        
+        // Cerrar modal al hacer clic fuera
+        document.addEventListener('click', function(event) {
+            if (event.target.id === 'ratingModal') {
+                closeRatingModal();
+            }
+        });
+        
+        // Inicializar cuando se carga la página
+        document.addEventListener('DOMContentLoaded', () => {
+            new NeoTotemVisualizer();
+            createVisualizationSession(); // Crear sesión automáticamente
+        });
+    </script>
+</body>
+</html>
+
+

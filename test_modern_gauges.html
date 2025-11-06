@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Test Gráficos de Aguja Modernos</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .gauges-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .gauge-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 
+                0 8px 25px rgba(0,0,0,0.1),
+                0 4px 10px rgba(0,0,0,0.05);
+            text-align: center;
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .gauge-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 12px 35px rgba(0,0,0,0.15),
+                0 6px 15px rgba(0,0,0,0.08);
+        }
+
+        .gauge-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .gauge-semicircle {
+            width: 220px;
+            height: 110px;
+            position: relative;
+            margin: 15px auto;
+            overflow: hidden;
+        }
+
+        .gauge-semicircle::before {
+            content: '';
+            position: absolute;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: conic-gradient(from 180deg,
+                #28a745 0deg 90deg,
+                #ffc107 90deg 120deg,
+                #dc3545 120deg 180deg
+            );
+            transform: rotate(0deg);
+            top: 0;
+            left: 0;
+            box-shadow: 
+                inset 0 0 20px rgba(0,0,0,0.15),
+                0 0 20px rgba(0,0,0,0.1);
+            border: 3px solid rgba(255,255,255,0.8);
+        }
+
+        .gauge-semicircle::after {
+            content: '';
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            top: 30px;
+            left: 30px;
+            box-shadow: 
+                0 0 15px rgba(0,0,0,0.1),
+                inset 0 0 10px rgba(0,0,0,0.05);
+            border: 2px solid rgba(0,0,0,0.05);
+        }
+
+        .gauge-needle {
+            width: 4px;
+            height: 80px;
+            background: linear-gradient(to bottom, #2c3e50 0%, #34495e 100%);
+            border-radius: 2px;
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform-origin: top center;
+            transform: translateX(-50%) rotate(90deg);
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 5; /* Por debajo del semicírculo */
+            box-shadow: 
+                0 0 8px rgba(44, 62, 80, 0.4),
+                0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .gauge-needle::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 20px solid #2c3e50;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .gauge-center {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 50%;
+            top: 94px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20; /* Por encima de todo para que se vea */
+            box-shadow: 
+                0 0 8px rgba(44, 62, 80, 0.6),
+                0 2px 4px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.8);
+        }
+
+        .gauge-value {
+            font-size: 2.2em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-top: 15px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            letter-spacing: -0.5px;
+        }
+        
+        .test-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 20px;
+            transition: transform 0.3s ease;
+        }
+        
+        .test-button:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Gráficos de Aguja Modernos</h1>
+        
+        <div style="text-align: center;">
+            <button class="test-button" onclick="testGauges()">🔄 Probar Gráficos</button>
+            <button class="test-button" onclick="location.reload(true)">🔄 Recargar Página</button>
+        </div>
+        
+        <div class="gauges-container">
+            <div class="gauge-card">
+                <div class="gauge-title">Tasa de Aceptación</div>
+                <div class="gauge-semicircle">
+                    <div class="gauge-needle" id="acceptance-needle"></div>
+                    <div class="gauge-center"></div>
+                </div>
+                <div class="gauge-value" id="acceptance-gauge-value">9.4%</div>
+            </div>
+            
+            <div class="gauge-card">
+                <div class="gauge-title">Calificación Promedio</div>
+                <div class="gauge-semicircle">
+                    <div class="gauge-needle" id="rating-needle"></div>
+                    <div class="gauge-center"></div>
+                </div>
+                <div class="gauge-value" id="rating-gauge-value">4.2</div>
+            </div>
+            
+            <div class="gauge-card">
+                <div class="gauge-title">Ventas Influenciadas</div>
+                <div class="gauge-semicircle">
+                    <div class="gauge-needle" id="sales-needle"></div>
+                    <div class="gauge-center"></div>
+                </div>
+                <div class="gauge-value" id="sales-gauge-value">2.8%</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function updateGauge(needleId, value, min, max) {
+            const needle = document.getElementById(needleId);
+            if (needle) {
+                const percentage = (value - min) / (max - min);
+                // Centrar la aguja: 0% = 90°, 50% = 180°, 100% = 270°
+                const angle = 90 + (percentage * 180); // 90° to 270° for downward semicircle
+                needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
+                console.log(`🎯 ${needleId}: ${value} (${percentage.toFixed(2)}%) -> ${angle.toFixed(1)}°`);
+            }
+        }
+        
+        function testGauges() {
+            console.log('🧪 Probando gráficos de aguja...');
+            
+            // Simular diferentes valores
+            updateGauge('acceptance-needle', 9.4, 0, 100);
+            updateGauge('rating-needle', 4.2, 0, 5);
+            updateGauge('sales-needle', 2.8, 0, 100);
+            
+            // Animar con diferentes valores después de 2 segundos
+            setTimeout(() => {
+                updateGauge('acceptance-needle', 25, 0, 100);
+                updateGauge('rating-needle', 2.5, 0, 5);
+                updateGauge('sales-needle', 15, 0, 100);
+            }, 2000);
+            
+            // Volver a valores originales después de 4 segundos
+            setTimeout(() => {
+                updateGauge('acceptance-needle', 9.4, 0, 100);
+                updateGauge('rating-needle', 4.2, 0, 5);
+                updateGauge('sales-needle', 2.8, 0, 100);
+            }, 4000);
+        }
+        
+        // Inicializar gráficos al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Página cargada, inicializando gráficos...');
+            testGauges();
+        });
+    </script>
+</body>
+</html>

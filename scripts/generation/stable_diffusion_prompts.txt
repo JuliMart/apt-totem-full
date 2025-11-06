@@ -1,0 +1,155 @@
+# Prompts para Stable Diffusion - Imágenes de Productos
+# Usar con AUTOMATIC1111, ComfyUI, o similar
+
+## Configuración recomendada:
+- Steps: 20-30
+- CFG Scale: 7-9
+- Sampler: DPM++ 2M Karras
+- Size: 512x512
+- Model: Realistic Vision o similar
+
+---
+
+### 1. Adidas Adidas Ultraboost 22
+**Colores:** Negro, Blanco, Azul
+**Archivo sugerido:** `adidas-adidas-ultraboost-22.jpg`
+
+**Prompt:**
+```
+professional product photography, Adidas Adidas Ultraboost 22, white background, studio lighting, high quality, commercial photography, product shot, clean, minimalist, 512x512
+```
+
+**Negative Prompt:**
+```
+blurry, low quality, distorted, watermark, text, logo, multiple products
+```
+
+---
+
+### 2. Adidas Hoodie Adidas Originals
+**Colores:** Negro, Blanco, Azul
+**Archivo sugerido:** `adidas-hoodie-adidas-originals.jpg`
+
+**Prompt:**
+```
+professional product photography, Adidas Hoodie Adidas Originals, white background, studio lighting, high quality, commercial photography, product shot, clean, minimalist, 512x512
+```
+
+**Negative Prompt:**
+```
+blurry, low quality, distorted, watermark, text, logo, multiple products
+```
+
+---
+
+### 3. Adidas Pantalón Adidas Tiro
+**Colores:** Negro, Blanco, Azul
+**Archivo sugerido:** `adidas-pantalón-adidas-tiro.jpg`
+
+**Prompt:**
+```
+professional product photography, Adidas Pantalón Adidas Tiro, white background, studio lighting, high quality, commercial photography, product shot, clean, minimalist, 512x512
+```
+
+**Negative Prompt:**
+```
+blurry, low quality, distorted, watermark, text, logo, multiple products
+```
+
+---
+
+### 4. Converse Converse Chuck Taylor
+**Colores:** Negro, Blanco, Azul
+**Archivo sugerido:** `converse-converse-chuck-taylor.jpg`
+
+**Prompt:**
+```
+professional product photography, Converse Converse Chuck Taylor, white background, studio lighting, high quality, commercial photography, product shot, clean, minimalist, 512x512
+```
+
+**Negative Prompt:**
+```
+blurry, low quality, distorted, watermark, text, logo, multiple products
+```
+
+---
+
+### 5. Nike Camiseta Nike Dri-FIT
+**Colores:** Negro, Blanco, Azul
+**Archivo sugerido:** `nike-camiseta-nike-dri-fit.jpg`
+
+**Prompt:**
+```
+professional product photography, Nike Camiseta Nike Dri-FIT, white background, studio lighting, high quality, commercial photography, product shot, clean, minimalist, 512x512
+```
+
+**Negative Prompt:**
+```
+blurry, low quality, distorted, watermark, text, logo, multiple products
+```
+
+---
+
+### 6. Nike Nike Air Max 270
+**Colores:** Negro, Blanco, Azul
+**Archivo sugerido:** `nike-nike-air-max-270.jpg`
+
+**Prompt:**
+```
+professional product photography, Nike Nike Air Max 270, white background, studio lighting, high quality, commercial photography, product shot, clean, minimalist, 512x512
+```
+
+**Negative Prompt:**
+```
+blurry, low quality, distorted, watermark, text, logo, multiple products
+```
+
+---
+
+### 7. Nike Pantalón Nike Tech Fleece
+**Colores:** Negro, Blanco, Azul
+**Archivo sugerido:** `nike-pantalón-nike-tech-fleece.jpg`
+
+**Prompt:**
+```
+professional product photography, Nike Pantalón Nike Tech Fleece, white background, studio lighting, high quality, commercial photography, product shot, clean, minimalist, 512x512
+```
+
+**Negative Prompt:**
+```
+blurry, low quality, distorted, watermark, text, logo, multiple products
+```
+
+---
+
+### 8. Puma Puma RS-X
+**Colores:** Negro, Blanco, Azul
+**Archivo sugerido:** `puma-puma-rs-x.jpg`
+
+**Prompt:**
+```
+professional product photography, Puma Puma RS-X, white background, studio lighting, high quality, commercial photography, product shot, clean, minimalist, 512x512
+```
+
+**Negative Prompt:**
+```
+blurry, low quality, distorted, watermark, text, logo, multiple products
+```
+
+---
+
+### 9. Vans Vans Old Skool
+**Colores:** Negro, Blanco, Azul
+**Archivo sugerido:** `vans-vans-old-skool.jpg`
+
+**Prompt:**
+```
+professional product photography, Vans Vans Old Skool, white background, studio lighting, high quality, commercial photography, product shot, clean, minimalist, 512x512
+```
+
+**Negative Prompt:**
+```
+blurry, low quality, distorted, watermark, text, logo, multiple products
+```
+
+---

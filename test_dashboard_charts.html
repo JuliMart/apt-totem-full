@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Dashboard Charts</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Test Dashboard Charts</h1>
+    
+    <div style="width: 400px; height: 200px;">
+        <canvas id="conversionsChart"></canvas>
+    </div>
+    
+    <div style="width: 400px; height: 200px;">
+        <canvas id="productsChart"></canvas>
+    </div>
+    
+    <button onclick="testCharts()">Test Charts</button>
+    
+    <script>
+        let conversionsChart, productsChart;
+        
+        function initCharts() {
+            console.log('🎨 Inicializando gráficos de prueba...');
+            
+            // Gráfico de conversiones por hora
+            const conversionsCtx = document.getElementById('conversionsChart').getContext('2d');
+            conversionsChart = new Chart(conversionsCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Conversiones',
+                        data: [],
+                        backgroundColor: '#667eea',
+                        borderColor: '#667eea',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            console.log('✅ Gráfico de conversiones inicializado:', conversionsChart);
+
+            // Gráfico de productos más clickeados
+            const productsCtx = document.getElementById('productsChart').getContext('2d');
+            productsChart = new Chart(productsCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Clics',
+                        data: [],
+                        backgroundColor: [
+                            '#667eea',
+                            '#764ba2',
+                            '#f093fb',
+                            '#f5576c',
+                            '#4facfe'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            console.log('✅ Gráfico de productos inicializado:', productsChart);
+        }
+        
+        function updateConversionsChart(hourlyData) {
+            console.log('📊 Actualizando gráfico de conversiones:', hourlyData);
+            console.log('📊 Gráfico de conversiones existe:', !!conversionsChart);
+            
+            if (!conversionsChart) {
+                console.error('❌ Gráfico de conversiones no está inicializado');
+                return;
+            }
+            
+            const hours = [];
+            const conversions = [];
+            
+            // Procesar datos del formato {hour: "23:00", conversions: 16}
+            hourlyData.forEach(item => {
+                hours.push(item.hour);
+                conversions.push(item.conversions);
+            });
+            
+            console.log('📊 Horas:', hours);
+            console.log('📊 Conversiones:', conversions);
+            
+            conversionsChart.data.labels = hours;
+            conversionsChart.data.datasets[0].data = conversions;
+            conversionsChart.update();
+            console.log('✅ Gráfico de conversiones actualizado');
+        }
+        
+        function updateProductsChart(products) {
+            console.log('📈 Actualizando gráfico de productos:', products);
+            console.log('📈 Gráfico de productos existe:', !!productsChart);
+            
+            if (!productsChart) {
+                console.error('❌ Gráfico de productos no está inicializado');
+                return;
+            }
+            
+            const labels = products.slice(0, 5).map(p => p.product);
+            const data = products.slice(0, 5).map(p => p.clicks);
+            
+            console.log('📈 Labels:', labels);
+            console.log('📈 Data:', data);
+            
+            productsChart.data.labels = labels;
+            productsChart.data.datasets[0].data = data;
+            productsChart.update();
+            console.log('✅ Gráfico de productos actualizado');
+        }
+        
+        async function testCharts() {
+            console.log('🧪 Iniciando prueba de gráficos...');
+            
+            try {
+                const response = await fetch('http://127.0.0.1:8001/dashboard/metrics/live');
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('📊 Datos recibidos:', data);
+                    
+                    if (data.hourly_conversions) {
+                        console.log('✅ Actualizando gráfico de conversiones');
+                        updateConversionsChart(data.hourly_conversions);
+                    } else {
+                        console.log('❌ No hay datos de hourly_conversions');
+                    }
+                    
+                    if (data.top_products) {
+                        console.log('✅ Actualizando gráfico de productos');
+                        updateProductsChart(data.top_products);
+                    } else {
+                        console.log('❌ No hay datos de top_products');
+                    }
+                } else {
+                    console.error('❌ Error en la respuesta:', response.status);
+                }
+            } catch (error) {
+                console.error('❌ Error:', error);
+            }
+        }
+        
+        // Inicializar cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            initCharts();
+            console.log('🚀 Página cargada, gráficos inicializados');
+        });
+    </script>
+</body>
+</html>
+

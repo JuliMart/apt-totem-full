@@ -20,6 +20,7 @@ faster-whisper==1.0.3
 # Utilidades
 python-dotenv>=1.0,<2.0
 requests>=2.31,<3.0
+schedule>=1.2.0,<2.0
 
 # pydantic-settings>=2.5,<3.0   # Si prefieres cargar .env con Settings
 # mediapipe==0.10.14            # SOLO con Python >= 3.10 (en 3.9 no instalar)

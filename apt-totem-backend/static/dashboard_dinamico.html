@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoTotem AI - Dashboard Dinámico</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            padding: 10px;
+            overflow: hidden;
+        }
+        
+        .container {
+            max-width: 100%;
+            height: calc(100vh - 20px);
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            padding: 10px;
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .dashboard-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .gauge-container {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .gauge-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .gauge-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+        
+        .gauge-needle {
+            width: 3px;
+            height: 70px;
+            background: #87CEEB;
+            border-radius: 1px;
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform-origin: bottom center;
+            transform: translateX(-50%) rotate(-90deg);
+            transition: transform 0.5s ease;
+            z-index: 10;
+            box-shadow: 0 0 3px rgba(135, 206, 235, 0.3);
+        }
+        
+        .gauge-needle::before {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .gauge-semicircle {
+            width: 200px;
+            height: 100px;
+            position: relative;
+            margin: 10px auto;
+            overflow: hidden;
+        }
+        
+        .gauge-semicircle::before {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: conic-gradient(from 180deg, 
+                #dc3545 0deg 60deg, 
+                #ffc107 60deg 120deg, 
+                #28a745 120deg 180deg);
+            transform: rotate(180deg);
+            top: -100px;
+            left: 0;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
+        }
+        
+        .gauge-semicircle::after {
+            content: '';
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: white;
+            top: -50px;
+            left: 30px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+        }
+        
+        .gauge-center {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #87CEEB;
+            border-radius: 50%;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 15;
+            box-shadow: 0 0 4px rgba(135, 206, 235, 0.4);
+        }
+        
+        .compact-chart {
+            height: 200px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+        
+        .metric-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .top-products {
+            display: grid;
+            gap: 10px;
+        }
+        
+        .product-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .product-name {
+            font-weight: bold;
+        }
+        
+        .product-clicks {
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-online {
+            background-color: #28a745;
+        }
+        
+        .status-offline {
+            background-color: #dc3545;
+        }
+        
+        .real-time-update {
+            color: #28a745;
+            font-size: 0.8em;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 NeoTotem AI - Dashboard Dinámico</h1>
+            <p>Analytics en Tiempo Real | <span id="connection-status">Conectando...</span></p>
+        </div>
+        
+        <div class="main-content">
+            <!-- Métricas Principales Compactas -->
+            <div class="dashboard-section">
+                <h3>📊 Métricas Clave del Negocio</h3>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <h4>🔹 Sesiones Iniciadas</h4>
+                        <div class="metric-value" id="sessions-started">0</div>
+                        <p class="metric-label">Hoy</p>
+                    </div>
+                    <div class="metric-card">
+                        <h4>🔹 Duración Promedio</h4>
+                        <div class="metric-value" id="avg-duration">0 min</div>
+                        <p class="metric-label">Por sesión</p>
+                    </div>
+                    <div class="metric-card">
+                        <h4>🔹 Recomendaciones Aceptadas</h4>
+                        <div class="metric-value" id="acceptance-rate">0%</div>
+                        <p class="metric-label">Tasa de aceptación</p>
+                    </div>
+                    <div class="metric-card">
+                        <h4>🔹 Calificación Promedio</h4>
+                        <div class="metric-value" id="avg-rating">0.0</div>
+                        <p class="metric-label">Después de recomendación</p>
+                    </div>
+                    <div class="metric-card">
+                        <h4>🔹 Ventas Influenciadas</h4>
+                        <div class="metric-value" id="sales-rate">0%</div>
+                        <p class="metric-label">Por el tótem</p>
+                    </div>
+                    <div class="metric-card">
+                        <h4>🔹 Productos Más Vistos</h4>
+                        <div class="metric-value" id="most-viewed-count">0</div>
+                        <p class="metric-label">Hoy</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dashboard Grid Principal -->
+            <div class="dashboard-grid">
+                <!-- Columna Izquierda: Gráficos de Aguja -->
+                <div>
+                    <!-- Gráfico de Aguja - Tasa de Aceptación -->
+                    <div class="gauge-container">
+                        <div class="gauge-title">Tasa de Aceptación</div>
+                        <div class="gauge-semicircle" id="acceptance-gauge">
+                            <div class="gauge-needle" id="acceptance-needle"></div>
+                            <div class="gauge-center"></div>
+                        </div>
+                        <div class="gauge-value" id="acceptance-gauge-value">0%</div>
+                    </div>
+                    
+                    <!-- Gráfico de Aguja - Calificación Promedio -->
+                    <div class="gauge-container">
+                        <div class="gauge-title">Calificación Promedio</div>
+                        <div class="gauge-semicircle" id="rating-gauge">
+                            <div class="gauge-needle" id="rating-needle"></div>
+                            <div class="gauge-center"></div>
+                        </div>
+                        <div class="gauge-value" id="rating-gauge-value">0.0</div>
+                    </div>
+                    
+                    <!-- Gráfico de Aguja - Ventas Influenciadas -->
+                    <div class="gauge-container">
+                        <div class="gauge-title">Ventas Influenciadas</div>
+                        <div class="gauge-semicircle" id="sales-gauge">
+                            <div class="gauge-needle" id="sales-needle"></div>
+                            <div class="gauge-center"></div>
+                        </div>
+                        <div class="gauge-value" id="sales-gauge-value">0%</div>
+                    </div>
+                </div>
+                
+                <!-- Columna Derecha: Gráficos y Listas -->
+                <div>
+                    <!-- Gráfico de Conversiones Compacto -->
+                    <div class="dashboard-section">
+                        <h3>📈 Conversiones por Hora</h3>
+                        <div class="chart-container compact-chart">
+                            <canvas id="conversionChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Productos Más Vistos -->
+                    <div class="dashboard-section">
+                        <h3>🔹 Productos Más Vistos</h3>
+                        <div class="top-products" id="most-viewed-list">
+                            <p>Cargando productos...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Gráfico de Productos Compacto -->
+                    <div class="dashboard-section">
+                        <h3>📊 Productos Más Clickeados</h3>
+                        <div class="chart-container compact-chart">
+                            <canvas id="productsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let conversionChart;
+        let productsChart;
+        let websocket;
+        
+        // Inicializar dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            connectWebSocket();
+            loadInitialData();
+            startRealTimeUpdates();
+        });
+        
+        // Inicializar gráficos
+        function initializeCharts() {
+            // Gráfico de conversiones
+            const ctx1 = document.getElementById('conversionChart').getContext('2d');
+            conversionChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                    datasets: [{
+                        label: 'Conversiones',
+                        data: [12, 19, 3, 5, 2, 3],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Conversiones por Hora'
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico de productos
+            const ctx2 = document.getElementById('productsChart').getContext('2d');
+            productsChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['Nike Air Max', 'Adidas Ultraboost', 'Puma RS-X', 'Converse Chuck', 'Vans Old Skool'],
+                    datasets: [{
+                        label: 'Clics',
+                        data: [65, 59, 80, 81, 56],
+                        backgroundColor: [
+                            'rgba(102, 126, 234, 0.8)',
+                            'rgba(54, 162, 235, 0.8)',
+                            'rgba(255, 99, 132, 0.8)',
+                            'rgba(75, 192, 192, 0.8)',
+                            'rgba(153, 102, 255, 0.8)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Productos Más Clickeados'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Conectar WebSocket
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
+            
+            websocket = new WebSocket(wsUrl);
+            
+            websocket.onopen = function() {
+                document.getElementById('connection-status').innerHTML = 
+                    '<span class="status-indicator status-online"></span>Conectado';
+            };
+            
+            websocket.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                if (data.type === 'realtime_analysis') {
+                    updateMetrics(data.analysis);
+                }
+            };
+            
+            websocket.onclose = function() {
+                document.getElementById('connection-status').innerHTML = 
+                    '<span class="status-indicator status-offline"></span>Desconectado';
+            };
+        }
+        
+        // Cargar datos iniciales desde BD real
+        async function loadInitialData() {
+            try {
+                // Cargar dashboard de analytics desde BD real
+                const response = await fetch('/analytics/dashboard?dias=1');
+                const data = await response.json();
+                
+                updateDashboard(data);
+                
+                // Cargar datos en tiempo real
+                const realTimeResponse = await fetch('/dashboard/real-time');
+                const realTimeData = await realTimeResponse.json();
+                
+                updateRealTimeMetrics(realTimeData);
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                // Fallback a datos simulados si falla la BD
+                loadFallbackData();
+            }
+        }
+        
+        // Función de fallback si no hay conexión a BD
+        function loadFallbackData() {
+            const fallbackData = {
+                resumen_general: {
+                    total_sesiones_activas: 12,
+                    total_recomendaciones: 156,
+                    ctr_promedio: 0.28
+                },
+                productos_top: [
+                    {producto: "Nike Air Max 270", marca: "Nike", clics: 45},
+                    {producto: "Adidas Ultraboost 22", marca: "Adidas", clics: 38},
+                    {producto: "Puma RS-X Reinvention", marca: "Puma", clics: 32}
+                ]
+            };
+            updateDashboard(fallbackData);
+        }
+        
+        // Actualizar dashboard con datos
+        function updateDashboard(data) {
+            // Actualizar métricas principales
+            document.getElementById('conversions-today').textContent = 
+                data.resumen_general?.total_sesiones_activas || 0;
+            document.getElementById('active-sessions').textContent = 
+                data.resumen_general?.total_sesiones_activas || 0;
+            document.getElementById('ctr-average').textContent = 
+                `${((data.resumen_general?.ctr_promedio || 0) * 100).toFixed(1)}%`;
+            document.getElementById('products-viewed').textContent = 
+                data.resumen_general?.total_recomendaciones || 0;
+            
+            // Actualizar productos top
+            if (data.productos_top) {
+                updateTopProducts(data.productos_top);
+            }
+        }
+        
+        // Actualizar productos más vistos
+        function updateMostViewedProducts(products) {
+            const container = document.getElementById('most-viewed-list');
+            container.innerHTML = '';
+            
+            products.slice(0, 5).forEach((product, index) => {
+                const productDiv = document.createElement('div');
+                productDiv.className = 'product-item';
+                productDiv.innerHTML = `
+                    <div>
+                        <span class="product-name">${index + 1}. ${product.producto}</span>
+                    </div>
+                    <div class="product-clicks">${product.vistas} vistas</div>
+                `;
+                container.appendChild(productDiv);
+            });
+        }
+        
+        // Actualizar métricas en tiempo real
+        function updateMetrics(analysis) {
+            // Simular actualización de métricas basada en análisis
+            const conversions = document.getElementById('conversions-today');
+            const current = parseInt(conversions.textContent) || 0;
+            conversions.textContent = current + (Math.random() > 0.7 ? 1 : 0);
+            
+            // Actualizar timestamp
+            document.querySelectorAll('.real-time-update').forEach(el => {
+                el.textContent = '🔄 Actualizado hace 0s';
+            });
+        }
+        
+        // Actualizar métricas en tiempo real desde BD
+        function updateRealTimeMetrics(data) {
+            if (data) {
+                // Actualizar métricas principales
+                document.getElementById('sessions-started').textContent = data.business_metrics?.sessions_started_today || 0;
+                document.getElementById('avg-duration').textContent = `${data.business_metrics?.avg_session_duration_minutes || 0} min`;
+                document.getElementById('acceptance-rate').textContent = `${(data.business_metrics?.recommendation_acceptance_rate * 100 || 0).toFixed(1)}%`;
+                document.getElementById('avg-rating').textContent = data.business_metrics?.avg_rating || 0.0;
+                document.getElementById('sales-rate').textContent = `${(data.business_metrics?.influenced_sales_rate * 100 || 0).toFixed(1)}%`;
+                document.getElementById('most-viewed-count').textContent = data.most_viewed_products?.length || 0;
+                
+                // Actualizar gráficos de aguja
+                updateGauge('acceptance-needle', data.business_metrics?.recommendation_acceptance_rate * 100 || 0, 0, 100);
+                updateGauge('rating-needle', data.business_metrics?.avg_rating || 0, 0, 5);
+                updateGauge('sales-needle', data.business_metrics?.influenced_sales_rate * 100 || 0, 0, 100);
+                
+                // Actualizar valores de aguja
+                document.getElementById('acceptance-gauge-value').textContent = `${(data.business_metrics?.recommendation_acceptance_rate * 100 || 0).toFixed(1)}%`;
+                document.getElementById('rating-gauge-value').textContent = data.business_metrics?.avg_rating || 0.0;
+                document.getElementById('sales-gauge-value').textContent = `${(data.business_metrics?.influenced_sales_rate * 100 || 0).toFixed(1)}%`;
+                
+                // Actualizar productos más vistos
+                if (data.most_viewed_products) {
+                    updateMostViewedProducts(data.most_viewed_products);
+                }
+            }
+        }
+        
+        // Función para actualizar gráficos de aguja (medialuna)
+        function updateGauge(needleId, value, min, max) {
+            const needle = document.getElementById(needleId);
+            if (needle) {
+                // Calcular ángulo para medialuna con nuevo sistema de colores
+                // Rojo: -90° a -30°, Amarillo: -30° a +30°, Verde: +30° a +90°
+                const percentage = (value - min) / (max - min);
+                const angle = (percentage * 180) - 90; // -90° a +90°
+                needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
+            }
+        }
+        
+        // Iniciar actualizaciones en tiempo real
+        function startRealTimeUpdates() {
+            setInterval(async () => {
+                try {
+                    // Obtener datos reales de la BD
+                    const response = await fetch('/dashboard/metrics/live');
+                    if (response.ok) {
+                        const data = await response.json();
+                        updateRealTimeMetrics(data);
+                    }
+                } catch (error) {
+                    console.error('Error actualizando métricas:', error);
+                    // Fallback a simulación si falla la BD
+                    const conversions = document.getElementById('conversions-today');
+                    const current = parseInt(conversions.textContent) || 0;
+                    if (Math.random() > 0.8) {
+                        conversions.textContent = current + 1;
+                    }
+                }
+            }, 10000); // Actualizar cada 10 segundos para mayor dinamismo
+        }
+        
+        // Manejar errores
+        window.addEventListener('error', function(e) {
+            console.error('Error en dashboard:', e);
+        });
+    </script>
+</body>
+</html>

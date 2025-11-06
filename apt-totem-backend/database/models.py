@@ -41,6 +41,7 @@ class ProductoVariante(Base):
 class Sesion(Base):
     __tablename__ = "sesion"
     id_sesion = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id_dispositivo = Column(Integer, default=1)
     inicio = Column(DateTime, default=datetime.utcnow)
     termino = Column(DateTime, nullable=True)
     canal = Column(String(20))  # voz / vision / mixto
@@ -136,3 +137,103 @@ class MetricasSesion(Base):
 Sesion.recomendaciones = relationship("RecomendacionSesion", back_populates="sesion")
 Sesion.interacciones = relationship("InteraccionUsuario", back_populates="sesion")
 Sesion.metricas = relationship("MetricasSesion", back_populates="sesion")
+
+# --- Turnos y Detecciones en Tiempo Real ---
+class Turno(Base):
+    __tablename__ = "turno"
+    id_turno = Column(Integer, primary_key=True, index=True)
+    fecha = Column(DateTime, nullable=False, default=datetime.utcnow)
+    hora_inicio = Column(DateTime, nullable=False)
+    hora_fin = Column(DateTime, nullable=True)
+    nombre_turno = Column(String(50))  # matutino, vespertino, nocturno
+    estado = Column(String(20), default="activo")  # activo, cerrado
+    total_clientes_detectados = Column(Integer, default=0)
+    total_detecciones = Column(Integer, default=0)
+    
+    detecciones_buffer = relationship("DeteccionBuffer", back_populates="turno")
+    resumen = relationship("ResumenTurno", back_populates="turno", uselist=False)
+
+class DeteccionBuffer(Base):
+    """Buffer temporal para almacenar detecciones en tiempo real antes de consolidar"""
+    __tablename__ = "deteccion_buffer"
+    id_buffer = Column(Integer, primary_key=True, index=True)
+    id_turno = Column(Integer, ForeignKey("turno.id_turno"), nullable=False)
+    fecha_hora = Column(DateTime, default=datetime.utcnow, index=True)
+    
+    # Datos de detección
+    persona_detectada = Column(Boolean, default=False)
+    rango_edad = Column(String(20))
+    estilo_ropa = Column(String(50))
+    color_principal = Column(String(30))
+    color_secundario = Column(String(30), nullable=True)
+    prenda_detectada = Column(String(50))
+    accesorio_cabeza = Column(String(50), nullable=True)
+    confianza_deteccion = Column(Float)
+    
+    # Metadata
+    motor_deteccion = Column(String(50))  # real_detection_mediapipe, simulated, etc.
+    fuente_camara = Column(String(20))  # real, simulated
+    procesado = Column(Boolean, default=False)  # Si ya fue procesado en el resumen
+    
+    turno = relationship("Turno", back_populates="detecciones_buffer")
+
+class ResumenTurno(Base):
+    """Resumen consolidado de detecciones por turno"""
+    __tablename__ = "resumen_turno"
+    id_resumen = Column(Integer, primary_key=True, index=True)
+    id_turno = Column(Integer, ForeignKey("turno.id_turno"), nullable=False, unique=True)
+    fecha_generacion = Column(DateTime, default=datetime.utcnow)
+    
+    # Estadísticas generales
+    total_detecciones = Column(Integer, default=0)
+    total_personas_detectadas = Column(Integer, default=0)
+    total_prendas_detectadas = Column(Integer, default=0)
+    total_accesorios_detectados = Column(Integer, default=0)
+    confianza_promedio = Column(Float)
+    
+    # Demografía
+    distribucion_edad = Column(Text)  # JSON: {"18-25": 10, "26-35": 20, ...}
+    
+    # Preferencias de estilo
+    estilos_detectados = Column(Text)  # JSON: {"casual": 50, "formal": 30, ...}
+    colores_predominantes = Column(Text)  # JSON: {"azul": 40, "negro": 35, ...}
+    prendas_mas_vistas = Column(Text)  # JSON: {"camiseta": 60, "chaqueta": 30, ...}
+    accesorios_mas_vistos = Column(Text)  # JSON: {"gorra": 20, "gafas": 15, ...}
+    
+    # Insights
+    perfil_cliente_predominante = Column(Text)  # JSON con el perfil más común
+    recomendaciones_inventario = Column(Text)  # JSON con sugerencias de stock
+    
+    turno = relationship("Turno", back_populates="resumen")
+
+# --- Sistema de Calificaciones ---
+class CalificacionRecomendacion(Base):
+    """Tabla para calificar las recomendaciones del tótem"""
+    __tablename__ = "calificacion_recomendacion"
+    
+    id_calificacion = Column(Integer, primary_key=True, index=True)
+    id_sesion = Column(String(36), ForeignKey("sesion.id_sesion"), nullable=False)
+    id_recomendacion = Column(Integer, ForeignKey("recomendacion_sesion.id_recomendacion"), nullable=False)
+    calificacion = Column(Integer, nullable=False)  # 1-5 estrellas
+    comentario = Column(Text, nullable=True)  # Comentario opcional
+    fecha_hora = Column(DateTime, default=datetime.utcnow)
+    
+    # Relaciones
+    sesion = relationship("Sesion")
+    recomendacion = relationship("RecomendacionSesion")
+
+class CalificacionGrupoRecomendacion(Base):
+    """Tabla para calificar grupos de recomendaciones del tótem"""
+    __tablename__ = "calificacion_grupo_recomendacion"
+    
+    id_calificacion_grupo = Column(Integer, primary_key=True, index=True)
+    id_sesion = Column(String(36), ForeignKey("sesion.id_sesion"), nullable=False)
+    tipo_grupo = Column(String(50), nullable=False)  # categoria, marca, color, estilo, etc.
+    nombre_grupo = Column(String(100), nullable=False)  # nombre específico del grupo
+    productos_incluidos = Column(Text)  # JSON con IDs de productos incluidos
+    calificacion_general = Column(Integer, nullable=False)  # 1-5 estrellas para el grupo completo
+    comentario_grupo = Column(Text, nullable=True)  # Comentario sobre el grupo
+    fecha_hora = Column(DateTime, default=datetime.utcnow)
+    
+    # Relaciones
+    sesion = relationship("Sesion")

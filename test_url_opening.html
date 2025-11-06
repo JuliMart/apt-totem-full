@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test URL Opening</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        .test-button {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+        .test-button:hover {
+            transform: translateY(-2px);
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test de Apertura de URLs</h1>
+        <p>Esta página prueba la funcionalidad de apertura de URLs en nueva pestaña.</p>
+        
+        <h3>URLs del Sistema NeoTotem:</h3>
+        
+        <button class="test-button" onclick="openUrl('http://127.0.0.1:8001/dashboard')">
+            📊 Abrir Dashboard
+        </button>
+        
+        <button class="test-button" onclick="openUrl('http://127.0.0.1:8001/control-sesiones')">
+            🎛️ Abrir Control de Sesiones
+        </button>
+        
+        <button class="test-button" onclick="openUrl('http://127.0.0.1:8001/visualization')">
+            👁️ Abrir Visualización
+        </button>
+        
+        <div class="status" id="status">
+            <strong>Estado:</strong> <span id="statusText">Listo para probar</span>
+        </div>
+    </div>
+
+    <script>
+        function openUrl(url) {
+            try {
+                // Intentar abrir en nueva pestaña
+                const newWindow = window.open(url, '_blank');
+                
+                if (newWindow) {
+                    document.getElementById('statusText').textContent = `✅ URL abierta: ${url}`;
+                    document.getElementById('statusText').style.color = '#4CAF50';
+                } else {
+                    document.getElementById('statusText').textContent = `❌ Bloqueado por popup blocker: ${url}`;
+                    document.getElementById('statusText').style.color = '#f44336';
+                }
+            } catch (error) {
+                document.getElementById('statusText').textContent = `❌ Error: ${error.message}`;
+                document.getElementById('statusText').style.color = '#f44336';
+            }
+        }
+        
+        // Test automático al cargar
+        window.addEventListener('load', function() {
+            document.getElementById('statusText').textContent = '✅ Página cargada - Listo para probar URLs';
+            document.getElementById('statusText').style.color = '#4CAF50';
+        });
+    </script>
+</body>
+</html>
+

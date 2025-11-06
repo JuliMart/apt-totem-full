@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoTotem - Búsquedas Expandidas</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .search-bar {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+        
+        .search-bar:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .trends-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .trend-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .trend-item:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .trend-icon {
+            font-size: 1.2em;
+            margin-right: 8px;
+        }
+        
+        .trend-query {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .trend-change {
+            font-size: 0.9em;
+            color: #28a745;
+        }
+        
+        .trend-item:hover .trend-change {
+            color: #90EE90;
+        }
+        
+        .category-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .category-tab {
+            padding: 10px 20px;
+            background: #e9ecef;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .category-tab.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .error {
+            color: #dc3545;
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 NeoTotem - Búsquedas Expandidas</h1>
+            <p>36+ opciones de búsqueda a un click</p>
+        </div>
+        
+        <input type="text" class="search-bar" placeholder="Buscar productos..." id="searchInput">
+        
+        <!-- Categorías -->
+        <div class="section">
+            <h2 class="section-title">📂 Categorías</h2>
+            <div class="category-tabs">
+                <button class="category-tab active" data-category="all">Todas</button>
+                <button class="category-tab" data-category="premium">💎 Premium</button>
+                <button class="category-tab" data-category="deportivo">👟 Deportivo</button>
+                <button class="category-tab" data-category="ropa">👔 Ropa</button>
+                <button class="category-tab" data-category="accesorios">🎒 Accesorios</button>
+                <button class="category-tab" data-category="colores">🎨 Colores</button>
+                <button class="category-tab" data-category="estacional">❄️ Estacional</button>
+            </div>
+        </div>
+        
+        <!-- Tendencias -->
+        <div class="section">
+            <h2 class="section-title">📈 Tendencias</h2>
+            <div class="trends-grid" id="trendsContainer">
+                <div class="loading">Cargando tendencias...</div>
+            </div>
+        </div>
+        
+        <!-- Búsquedas Rápidas -->
+        <div class="section">
+            <h2 class="section-title">⚡ Búsquedas Rápidas</h2>
+            <div class="trends-grid" id="quickSearchContainer">
+                <div class="loading">Cargando búsquedas rápidas...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8001';
+        let currentCategory = 'all';
+        
+        // Cargar datos iniciales
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTrends();
+            loadQuickSearches();
+            setupEventListeners();
+        });
+        
+        function setupEventListeners() {
+            // Categorías
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    currentCategory = this.dataset.category;
+                    loadQuickSearches();
+                });
+            });
+            
+            // Búsqueda
+            document.getElementById('searchInput').addEventListener('input', function(e) {
+                if (e.target.value.length > 2) {
+                    // Aquí podrías implementar autocompletado
+                    console.log('Buscando:', e.target.value);
+                }
+            });
+        }
+        
+        async function loadTrends() {
+            try {
+                const response = await fetch(`${API_BASE}/busqueda/trending?limit=20`);
+                const data = await response.json();
+                
+                const container = document.getElementById('trendsContainer');
+                container.innerHTML = '';
+                
+                data.trending_searches.forEach(trend => {
+                    const trendElement = createTrendElement(trend);
+                    container.appendChild(trendElement);
+                });
+            } catch (error) {
+                document.getElementById('trendsContainer').innerHTML = 
+                    '<div class="error">Error cargando tendencias. Verifica que el backend esté corriendo.</div>';
+            }
+        }
+        
+        async function loadQuickSearches() {
+            try {
+                const url = currentCategory === 'all' 
+                    ? `${API_BASE}/busqueda/quick-search?limit=12`
+                    : `${API_BASE}/busqueda/quick-search?category=${currentCategory}&limit=12`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                const container = document.getElementById('quickSearchContainer');
+                container.innerHTML = '';
+                
+                const searches = data.quick_searches || [];
+                searches.forEach(search => {
+                    const searchElement = createQuickSearchElement(search);
+                    container.appendChild(searchElement);
+                });
+            } catch (error) {
+                document.getElementById('quickSearchContainer').innerHTML = 
+                    '<div class="error">Error cargando búsquedas rápidas. Verifica que el backend esté corriendo.</div>';
+            }
+        }
+        
+        function createTrendElement(trend) {
+            const div = document.createElement('div');
+            div.className = 'trend-item';
+            div.innerHTML = `
+                <div class="trend-query">
+                    <span class="trend-icon">${trend.icon || '📈'}</span>
+                    ${trend.query}
+                </div>
+                <div class="trend-change">${trend.change}</div>
+            `;
+            div.addEventListener('click', () => {
+                document.getElementById('searchInput').value = trend.query;
+                console.log('Búsqueda seleccionada:', trend.query);
+            });
+            return div;
+        }
+        
+        function createQuickSearchElement(search) {
+            const div = document.createElement('div');
+            div.className = 'trend-item';
+            div.innerHTML = `
+                <div class="trend-query">
+                    <span class="trend-icon">${search.icon || '🔍'}</span>
+                    ${search.query}
+                </div>
+                <div class="trend-change">${search.price_range || search.description || ''}</div>
+            `;
+            div.addEventListener('click', () => {
+                document.getElementById('searchInput').value = search.query;
+                console.log('Búsqueda rápida seleccionada:', search.query);
+            });
+            return div;
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Sesiones - NeoTotem</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .status-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 5px solid #28a745;
+        }
+
+        .status-section.inactive {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .status-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .status-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .status-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .status-item h4 {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-item .value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .controls-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .control-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .control-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .control-card p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            min-width: 200px;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .btn-end {
+            background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+            color: white;
+        }
+
+        .btn-end:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            color: white;
+        }
+
+        .btn-reset:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 193, 7, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .stats-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .stats-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .stat-item .number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-item .label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎛️ Control de Sesiones</h1>
+            <p>Sistema de Gestión de Sesiones NeoTotem</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Estado Actual -->
+            <div class="status-section" id="statusSection">
+                <div class="status-title">📊 Estado Actual del Sistema</div>
+                <div class="loading" id="statusLoading">
+                    <div class="spinner"></div>
+                    <p>Cargando estado...</p>
+                </div>
+                <div class="status-info" id="statusInfo" style="display: none;">
+                    <div class="status-item">
+                        <h4>Estado</h4>
+                        <div class="value" id="estadoValue">-</div>
+                    </div>
+                    <div class="status-item">
+                        <h4>Sesión Activa</h4>
+                        <div class="value" id="sesionActivaValue">-</div>
+                    </div>
+                    <div class="status-item">
+                        <h4>Número de Sesión</h4>
+                        <div class="value session-number" id="numeroSesionValue">-</div>
+                    </div>
+                    <div class="status-item">
+                        <h4>Duración</h4>
+                        <div class="value" id="duracionValue">-</div>
+                    </div>
+                    <div class="status-item">
+                        <h4>Sesiones Hoy</h4>
+                        <div class="value" id="sesionesHoyValue">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controles -->
+            <div class="controls-section">
+                <div class="control-card">
+                    <h3>🚀 Iniciar Sesión</h3>
+                    <p>Inicia una nueva sesión controlada del tótem para comenzar a registrar interacciones y métricas.</p>
+                    <button class="btn btn-start" id="startSessionBtn" onclick="iniciarSesion()">
+                        Iniciar Sesión
+                    </button>
+                </div>
+
+                <div class="control-card">
+                    <h3>⏹️ Finalizar Sesión</h3>
+                    <p>Finaliza la sesión activa y calcula las métricas de duración y rendimiento.</p>
+                    <button class="btn btn-end" id="endSessionBtn" onclick="finalizarSesion()" disabled>
+                        Finalizar Sesión
+                    </button>
+                </div>
+
+                <div class="control-card">
+                    <h3>🔄 Reiniciar Sistema</h3>
+                    <p>Finaliza todas las sesiones activas y reinicia el sistema completamente.</p>
+                    <button class="btn btn-reset" id="resetSystemBtn" onclick="reiniciarSistema()">
+                        Reiniciar Sistema
+                    </button>
+                </div>
+            </div>
+
+            <!-- Estadísticas -->
+            <div class="stats-section">
+                <div class="stats-title">📈 Estadísticas de Sesiones</div>
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-item">
+                        <div class="number" id="totalSesiones">-</div>
+                        <div class="label">Total Sesiones</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="number" id="duracionPromedio">-</div>
+                        <div class="label">Duración Promedio (min)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="number" id="sesionesHoy">-</div>
+                        <div class="label">Sesiones Hoy</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="number" id="canalMasUsado">-</div>
+                        <div class="label">Canal Más Usado</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alertas -->
+            <div id="alertContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentSessionId = null;
+        let statusInterval = null;
+
+        // Cargar estado inicial
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarEstado();
+            cargarEstadisticas();
+            
+            // Actualizar estado cada 5 segundos
+            statusInterval = setInterval(cargarEstado, 5000);
+        });
+
+        async function cargarEstado() {
+            try {
+                const response = await fetch('/session-control/estado');
+                const data = await response.json();
+                
+                actualizarEstado(data);
+            } catch (error) {
+                console.error('Error cargando estado:', error);
+                mostrarAlerta('Error cargando estado del sistema', 'error');
+            }
+        }
+
+        function actualizarEstado(data) {
+            const statusSection = document.getElementById('statusSection');
+            const statusInfo = document.getElementById('statusInfo');
+            const statusLoading = document.getElementById('statusLoading');
+            
+            statusLoading.classList.remove('show');
+            statusInfo.style.display = 'grid';
+            
+            // Actualizar valores
+            document.getElementById('estadoValue').textContent = data.hay_sesion_activa ? '🟢 Activo' : '🔴 Inactivo';
+            document.getElementById('sesionActivaValue').textContent = data.hay_sesion_activa ? 'Sí' : 'No';
+            document.getElementById('sesionesHoyValue').textContent = data.sesiones_hoy;
+            
+            // Duración actual
+            if (data.hay_sesion_activa && data.sesion_activa) {
+                const duracionSegundos = data.sesion_activa.duracion_actual_segundos;
+                const minutos = Math.floor(duracionSegundos / 60);
+                const segundos = Math.floor(duracionSegundos % 60);
+                document.getElementById('duracionValue').textContent = `${minutos}:${segundos.toString().padStart(2, '0')}`;
+                currentSessionId = data.sesion_activa.id_sesion;
+            } else {
+                document.getElementById('duracionValue').textContent = '-';
+                currentSessionId = null;
+            }
+            
+            // Actualizar clase del status section
+            if (data.hay_sesion_activa) {
+                statusSection.classList.remove('inactive');
+            } else {
+                statusSection.classList.add('inactive');
+            }
+            
+            // Actualizar botones
+            document.getElementById('startSessionBtn').disabled = data.hay_sesion_activa;
+            document.getElementById('endSessionBtn').disabled = !data.hay_sesion_activa;
+        }
+
+        async function iniciarSesion() {
+            const btn = document.getElementById('startSessionBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Iniciando...';
+            
+            try {
+                const response = await fetch('/session-control/iniciar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        canal: 'manual',
+                        id_dispositivo: 1
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    mostrarAlerta(`✅ ${data.mensaje}`, 'success');
+                    cargarEstado();
+                    cargarEstadisticas();
+                } else {
+                    mostrarAlerta(`❌ ${data.detail}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error iniciando sesión:', error);
+                mostrarAlerta('Error iniciando sesión', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Iniciar Sesión';
+            }
+        }
+
+        async function finalizarSesion() {
+            if (!currentSessionId) {
+                mostrarAlerta('No hay sesión activa para finalizar', 'error');
+                return;
+            }
+            
+            const btn = document.getElementById('endSessionBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Finalizando...';
+            
+            try {
+                const response = await fetch('/session-control/finalizar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id_sesion: currentSessionId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    mostrarAlerta(`✅ ${data.mensaje}`, 'success');
+                    cargarEstado();
+                    cargarEstadisticas();
+                } else {
+                    mostrarAlerta(`❌ ${data.detail}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error finalizando sesión:', error);
+                mostrarAlerta('Error finalizando sesión', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Finalizar Sesión';
+            }
+        }
+
+        async function reiniciarSistema() {
+            const btn = document.getElementById('resetSystemBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Reiniciando...';
+            
+            try {
+                const response = await fetch('/session-control/reiniciar-sistema', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    mostrarAlerta(`✅ ${data.mensaje}`, 'success');
+                    cargarEstado();
+                    cargarEstadisticas();
+                } else {
+                    mostrarAlerta(`❌ ${data.detail}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error reiniciando sistema:', error);
+                mostrarAlerta('Error reiniciando sistema', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Reiniciar Sistema';
+            }
+        }
+
+        async function cargarEstadisticas() {
+            try {
+                const response = await fetch('/session-control/estadisticas?dias=7');
+                const data = await response.json();
+                
+                document.getElementById('totalSesiones').textContent = data.total_sesiones;
+                document.getElementById('duracionPromedio').textContent = data.duracion_promedio_minutos;
+                document.getElementById('sesionesHoy').textContent = data.sesiones_por_dia[new Date().toISOString().split('T')[0]] || 0;
+                
+                // Canal más usado
+                const canales = data.canales_mas_usados;
+                const canalMasUsado = Object.keys(canales).reduce((a, b) => canales[a] > canales[b] ? a : b, 'N/A');
+                document.getElementById('canalMasUsado').textContent = canalMasUsado;
+                
+            } catch (error) {
+                console.error('Error cargando estadísticas:', error);
+            }
+        }
+
+        function mostrarAlerta(mensaje, tipo) {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${tipo}`;
+            alert.textContent = mensaje;
+            
+            container.appendChild(alert);
+            
+            // Remover después de 5 segundos
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.parentNode.removeChild(alert);
+                }
+            }, 5000);
+        }
+
+        // Limpiar interval al cerrar la página
+        window.addEventListener('beforeunload', function() {
+            if (statusInterval) {
+                clearInterval(statusInterval);
+            }
+        });
+    </script>
+</body>
+</html>

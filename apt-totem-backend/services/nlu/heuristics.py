@@ -3,7 +3,7 @@ import re
 
 INTENTS: Dict[str, Dict[str, list]] = {
     "buscar": {
-        "keywords": ["busca", "buscar", "quiero", "tienes", "hay", "mostrar", "ver", "encontrar", "necesito", "zapatillas", "camiseta", "pantalon", "chaqueta", "ropa", "deportiva", "trekking"],
+        "keywords": ["busca", "buscar", "quiero", "tienes", "hay", "mostrar", "ver", "encontrar", "necesito", "zapatillas", "camiseta", "pantalon", "chaqueta", "ropa", "deportiva", "trekking", "reloj", "watch", "smart", "smartwatch", "smart watch", "apple", "rolex", "casio", "gafas", "lentes", "mochila", "cartera", "zapatos", "accesorios"],
         "patterns": [
             r"busco (.*)",
             r"quiero (.*)",
@@ -14,6 +14,10 @@ INTENTS: Dict[str, Dict[str, list]] = {
             r"(camiseta|camiseta|camisa) (.*)",
             r"(pantalon|pantalones|jeans) (.*)",
             r"(chaqueta|abrigo|jacket) (.*)",
+            r"(reloj|watch|relojes|smartwatch|smart watch) (.*)",
+            r"(gafas|lentes|anteojos) (.*)",
+            r"(mochila|mochilas|backpack) (.*)",
+            r"(cartera|carteras|wallet) (.*)",
             r"ropa (.*)",
             r"(.*) deportiva",
             r"(.*) para (.*)",
@@ -73,7 +77,7 @@ def extract_intent(text: str) -> Tuple[str, dict]:
     intent = "none"
     
     # Detectar intención de búsqueda con keywords expandidos
-    search_keywords = ["busca", "buscar", "quiero", "tienes", "hay", "mostrar", "ver", "encontrar", "necesito", "zapatillas", "camiseta", "pantalon", "chaqueta", "ropa", "deportiva", "trekking"]
+    search_keywords = ["busca", "buscar", "quiero", "tienes", "hay", "mostrar", "ver", "encontrar", "necesito", "zapatillas", "camiseta", "pantalon", "chaqueta", "ropa", "deportiva", "trekking", "reloj", "watch", "smart", "smartwatch", "smart watch", "apple", "rolex", "casio", "gafas", "lentes", "mochila", "cartera", "zapatos", "accesorios"]
     
     if any(kw in t for kw in search_keywords):
         intent = "buscar"
@@ -161,7 +165,7 @@ def calculate_intent_confidence(text: str, intent: str) -> float:
     confidence = (keyword_score * 0.7) + (pattern_score * 0.3)
     
     # Bonus por detección de productos específicos
-    product_keywords = ["zapatillas", "camiseta", "pantalon", "chaqueta", "ropa", "deportiva", "trekking"]
+    product_keywords = ["zapatillas", "camiseta", "pantalon", "chaqueta", "ropa", "deportiva", "trekking", "reloj", "watch", "smart", "smartwatch", "smart watch", "apple", "rolex", "casio", "gafas", "lentes", "mochila", "cartera", "zapatos", "accesorios"]
     if any(pk in normalized_text for pk in product_keywords):
         confidence += 0.2
     

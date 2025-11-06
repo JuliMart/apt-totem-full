@@ -159,7 +159,12 @@ class RecommendationEngine:
             'pantalón': 'Pantalones',
             'vestido': 'Vestidos',
             'gorro': 'Gorros',
-            'gafas': 'Gafas'
+            'gafas': 'Gafas',
+            'gafas_sol': 'Gafas',
+            'bolso': 'Bolsos',
+            'bolso_cruzado': 'Bolsos',
+            'mochila': 'Mochilas',
+            'cartera': 'Bolsos'
         }
         
         # Obtener productos de categorías trending
@@ -193,23 +198,44 @@ class RecommendationEngine:
         """Obtener recomendaciones personalizadas con tracking"""
         start_time = time.time()
         
-        # Lógica de recomendación basada en edad
+        # Lógica de recomendación basada en edad y estilo detectado
+        categories = []
+        brands = []
+        
         if age_range:
             if age_range in ["18-25", "26-35"]:
                 # Jóvenes: productos casuales y deportivos
-                categories = ["Zapatillas", "Poleras", "Accesorios"]
-                brands = ["Nike", "Adidas", "Converse", "Vans"]
+                base_categories = ["Zapatillas", "Poleras", "Accesorios"]
+                base_brands = ["Nike", "Adidas", "Converse", "Vans"]
             elif age_range in ["36-45", "46-55"]:
                 # Adultos: productos profesionales y elegantes
-                categories = ["Chaquetas", "Pantalones", "Accesorios"]
-                brands = ["Hugo Boss", "Ralph Lauren", "Tommy Hilfiger", "Lacoste"]
+                base_categories = ["Chaquetas", "Pantalones", "Accesorios"]
+                base_brands = ["Hugo Boss", "Ralph Lauren", "Tommy Hilfiger", "Lacoste"]
             else:
                 # Mayores: productos clásicos y cómodos
-                categories = ["Chaquetas", "Pantalones", "Accesorios"]
-                brands = ["Ralph Lauren", "Lacoste", "Hugo Boss"]
+                base_categories = ["Chaquetas", "Pantalones", "Accesorios"]
+                base_brands = ["Ralph Lauren", "Lacoste", "Hugo Boss"]
         else:
-            categories = ["Zapatillas", "Poleras", "Chaquetas", "Pantalones"]
-            brands = ["Nike", "Adidas", "Ralph Lauren", "Hugo Boss"]
+            base_categories = ["Zapatillas", "Poleras", "Chaquetas", "Pantalones"]
+            base_brands = ["Nike", "Adidas", "Ralph Lauren", "Hugo Boss"]
+        
+        # Ajustar categorías basado en estilo detectado
+        if clothing_style:
+            if clothing_style == "formal":
+                categories = ["Chaquetas", "Pantalones", "Accesorios"]
+                brands = ["Hugo Boss", "Ralph Lauren", "Tommy Hilfiger"]
+            elif clothing_style == "deportivo":
+                categories = ["Zapatillas", "Poleras", "Accesorios"]
+                brands = ["Nike", "Adidas", "Puma", "Under Armour"]
+            elif clothing_style == "elegante":
+                categories = ["Chaquetas", "Accesorios", "Pantalones"]
+                brands = ["Hugo Boss", "Ralph Lauren", "Lacoste"]
+            else:  # casual
+                categories = base_categories
+                brands = base_brands
+        else:
+            categories = base_categories
+            brands = base_brands
         
         # Obtener productos de categorías recomendadas
         recommended_products = []
@@ -225,10 +251,11 @@ class RecommendationEngine:
                 brand_products.extend(products)
             recommended_products.extend(brand_products)
         
-        # Filtrar por color si se especifica
+        # Filtrar por color si se especifica (prioridad alta para color detectado)
         if color_preference:
-            color_products = self.get_products_by_color(color_preference, limit=5, session_id=None)
-            recommended_products.extend(color_products)
+            color_products = self.get_products_by_color(color_preference, limit=8, session_id=None)
+            # Agregar productos del color detectado al inicio para mayor prioridad
+            recommended_products = color_products + recommended_products
         
         # Eliminar duplicados y limitar resultados
         unique_products = []

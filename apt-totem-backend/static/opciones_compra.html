@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opciones de Compra - NeoTotem AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .purchase-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .purchase-title {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .purchase-subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .product-info {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .product-name {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .product-price {
+            font-size: 2em;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+        
+        .product-details {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+        
+        .price-indicator {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .price-low {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .price-high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .options-container {
+            margin: 30px 0;
+        }
+        
+        .option-button {
+            display: block;
+            width: 100%;
+            padding: 15px 20px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: white;
+        }
+        
+        .option-primary {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        
+        .option-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+        
+        .option-secondary {
+            background: linear-gradient(135deg, #007bff 0%, #6610f2 100%);
+        }
+        
+        .option-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+        }
+        
+        .option-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        }
+        
+        .option-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+        }
+        
+        .quantity-section {
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .quantity-label {
+            display: block;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .quantity-input {
+            width: 100px;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1.1em;
+            text-align: center;
+            margin: 0 10px;
+        }
+        
+        .quantity-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .contact-section {
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .contact-label {
+            display: block;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .contact-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            margin-bottom: 10px;
+        }
+        
+        .contact-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .loading {
+            display: none;
+            color: #667eea;
+            margin-top: 20px;
+        }
+        
+        .vendor-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .vendor-info h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .vendor-info p {
+            color: #856404;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="purchase-container">
+        <h1 class="purchase-title">🛒 Opciones de Compra</h1>
+        <p class="purchase-subtitle">Selecciona cómo deseas proceder con este producto</p>
+        
+        <div class="product-info">
+            <div class="product-name" id="product-name">Cargando producto...</div>
+            <div class="product-price" id="product-price">$0</div>
+            <div class="product-details" id="product-details">Detalles del producto</div>
+            <div class="price-indicator" id="price-indicator">Verificando precio...</div>
+        </div>
+        
+        <div class="options-container" id="options-container">
+            <!-- Las opciones se cargarán dinámicamente -->
+        </div>
+        
+        <div class="quantity-section" id="quantity-section">
+            <label class="quantity-label">Cantidad:</label>
+            <input type="number" class="quantity-input" id="quantity-input" value="1" min="1" max="10">
+        </div>
+        
+        <div class="contact-section" id="contact-section">
+            <label class="contact-label">Método de contacto preferido:</label>
+            <input type="text" class="contact-input" id="contact-input" placeholder="Teléfono, WhatsApp, Email...">
+        </div>
+        
+        <div class="vendor-info" id="vendor-info">
+            <h4>👨‍💼 Información del Vendedor</h4>
+            <p><strong>Nombre:</strong> Carlos Mendoza</p>
+            <p><strong>Especialidad:</strong> Productos de Lujo</p>
+            <p><strong>Experiencia:</strong> 8 años</p>
+            <p><strong>Tiempo estimado:</strong> 5-10 minutos</p>
+        </div>
+        
+        <div class="loading" id="loading">
+            Procesando solicitud...
+        </div>
+        
+        <div class="success-message" id="success-message">
+            ✅ ¡Solicitud procesada exitosamente!
+        </div>
+        
+        <div class="error-message" id="error-message">
+            ❌ Error al procesar la solicitud. Inténtalo de nuevo.
+        </div>
+    </div>
+
+    <script>
+        let recommendationId = 0;
+        let sessionId = '';
+        let productData = null;
+        let canBuyDirect = false;
+        
+        // Obtener parámetros de la URL
+        function getUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            recommendationId = parseInt(urlParams.get('recommendation_id')) || 1;
+            sessionId = urlParams.get('session_id') || 'demo-session';
+            
+            // Cargar información del producto
+            loadProductInfo();
+        }
+        
+        // Cargar información del producto y opciones
+        async function loadProductInfo() {
+            try {
+                const response = await fetch(`/compra/verificar-precio/${recommendationId}`);
+                if (response.ok) {
+                    productData = await response.json();
+                    updateProductDisplay();
+                    updatePurchaseOptions();
+                } else {
+                    showError('Error cargando información del producto');
+                }
+            } catch (error) {
+                console.error('Error cargando producto:', error);
+                showError('Error de conexión');
+            }
+        }
+        
+        // Actualizar display del producto
+        function updateProductDisplay() {
+            document.getElementById('product-name').textContent = productData.producto;
+            document.getElementById('product-price').textContent = `$${productData.precio.toLocaleString()}`;
+            document.getElementById('product-details').textContent = 
+                `Marca: ${productData.marca} | SKU: ${productData.variante.sku}`;
+            
+            const indicator = document.getElementById('price-indicator');
+            if (productData.puede_comprar_directo) {
+                indicator.textContent = '✅ Compra directa disponible';
+                indicator.className = 'price-indicator price-low';
+            } else {
+                indicator.textContent = '👨‍💼 Requiere vendedor especializado';
+                indicator.className = 'price-indicator price-high';
+            }
+        }
+        
+        // Actualizar opciones de compra
+        function updatePurchaseOptions() {
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            
+            canBuyDirect = productData.puede_comprar_directo;
+            
+            if (canBuyDirect) {
+                // Opciones para compra directa
+                container.innerHTML = `
+                    <button class="option-button option-primary" onclick="showQuantitySection()">
+                        🛒 Comprar Ahora
+                    </button>
+                    <button class="option-button option-secondary" onclick="addToCart()">
+                        🛍️ Agregar al Carrito
+                    </button>
+                    <button class="option-button option-secondary" onclick="viewDetails()">
+                        👁️ Ver Detalles
+                    </button>
+                    <button class="option-button option-secondary" onclick="compareProducts()">
+                        ⚖️ Comparar Productos
+                    </button>
+                `;
+            } else {
+                // Opciones para productos de alto valor
+                container.innerHTML = `
+                    <button class="option-button option-warning" onclick="showContactSection()">
+                        📞 Llamar Vendedor
+                    </button>
+                    <button class="option-button option-secondary" onclick="requestInfo()">
+                        📋 Solicitar Información
+                    </button>
+                    <button class="option-button option-secondary" onclick="scheduleAppointment()">
+                        📅 Programar Cita
+                    </button>
+                    <button class="option-button option-secondary" onclick="viewDetails()">
+                        👁️ Ver Detalles del Producto
+                    </button>
+                `;
+                
+                // Mostrar información del vendedor
+                document.getElementById('vendor-info').style.display = 'block';
+            }
+        }
+        
+        // Funciones para compra directa
+        function showQuantitySection() {
+            document.getElementById('quantity-section').style.display = 'block';
+            document.getElementById('options-container').innerHTML = `
+                <button class="option-button option-primary" onclick="processDirectPurchase()">
+                    ✅ Confirmar Compra
+                </button>
+                <button class="option-button option-secondary" onclick="updatePurchaseOptions()">
+                    ← Volver a Opciones
+                </button>
+            `;
+        }
+        
+        async function processDirectPurchase() {
+            const quantity = parseInt(document.getElementById('quantity-input').value) || 1;
+            
+            showLoading();
+            
+            try {
+                const response = await fetch('/compra/comprar-directo', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id_sesion: sessionId,
+                        id_recomendacion: recommendationId,
+                        id_variante: productData.variante.id_variante,
+                        cantidad: quantity
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    showSuccess(`¡Compra procesada! ID: ${result.id_compra}`);
+                } else {
+                    throw new Error('Error en la compra');
+                }
+                
+            } catch (error) {
+                console.error('Error en compra:', error);
+                showError('Error procesando la compra');
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Funciones para productos de alto valor
+        function showContactSection() {
+            document.getElementById('contact-section').style.display = 'block';
+            document.getElementById('options-container').innerHTML = `
+                <button class="option-button option-warning" onclick="processVendorRequest()">
+                    📞 Solicitar Vendedor
+                </button>
+                <button class="option-button option-secondary" onclick="updatePurchaseOptions()">
+                    ← Volver a Opciones
+                </button>
+            `;
+        }
+        
+        async function processVendorRequest() {
+            const contactPreference = document.getElementById('contact-input').value.trim();
+            
+            showLoading();
+            
+            try {
+                const response = await fetch('/compra/solicitar-vendedor', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id_sesion: sessionId,
+                        id_recomendacion: recommendationId,
+                        id_variante: productData.variante.id_variante,
+                        motivo: "Producto de alto valor",
+                        contacto_preferido: contactPreference || null
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    showSuccess(`¡Solicitud enviada! ID: ${result.id_solicitud}`);
+                } else {
+                    throw new Error('Error en la solicitud');
+                }
+                
+            } catch (error) {
+                console.error('Error solicitando vendedor:', error);
+                showError('Error enviando solicitud');
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        // Funciones auxiliares
+        function addToCart() {
+            showSuccess('Producto agregado al carrito');
+        }
+        
+        function viewDetails() {
+            showSuccess('Redirigiendo a detalles del producto...');
+        }
+        
+        function compareProducts() {
+            showSuccess('Abriendo comparador de productos...');
+        }
+        
+        function requestInfo() {
+            showSuccess('Solicitando información adicional...');
+        }
+        
+        function scheduleAppointment() {
+            showSuccess('Programando cita con vendedor...');
+        }
+        
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('success-message').style.display = 'none';
+            document.getElementById('error-message').style.display = 'none';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        function showSuccess(message) {
+            document.getElementById('success-message').textContent = message;
+            document.getElementById('success-message').style.display = 'block';
+            document.getElementById('error-message').style.display = 'none';
+        }
+        
+        function showError(message) {
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('error-message').style.display = 'block';
+            document.getElementById('success-message').style.display = 'none';
+        }
+        
+        // Inicializar cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            getUrlParams();
+        });
+    </script>
+</body>
+</html>
+

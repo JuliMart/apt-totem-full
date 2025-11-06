@@ -27,7 +27,19 @@ def buscar_productos(
             "search_timestamp": datetime.utcnow().isoformat()
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error en búsqueda: {str(e)}")
+        # Devolver respuesta segura en lugar de 500 para no romper la UI
+        try:
+            print(f"❌ Error en búsqueda '{q}': {e}")
+        except Exception:
+            pass
+        return {
+            "query": q,
+            "total_results": 0,
+            "session_id": session_id,
+            "results": [],
+            "error": str(e),
+            "search_timestamp": datetime.utcnow().isoformat()
+        }
 
 @router.get("/sugerencias")
 def obtener_sugerencias_busqueda(
@@ -94,29 +106,62 @@ def obtener_busquedas_populares(
 
 @router.get("/trending")
 def obtener_tendencias_busqueda(
-    limit: int = Query(10, ge=1, le=50, description="Número de tendencias"),
+    limit: int = Query(20, ge=1, le=50, description="Número de tendencias"),
     db: Session = Depends(database.get_db)
 ):
-    """Obtener tendencias de búsqueda actuales"""
+    """Obtener tendencias de búsqueda actuales con más opciones"""
     try:
-        # Por ahora devolvemos tendencias simuladas
-        # En el futuro se pueden obtener de análisis de datos reales
+        # Tendencias expandidas con más opciones
         tendencias = [
-            {"query": "zapatillas deportivas", "trend": "up", "change": "+25%"},
-            {"query": "chaquetas de invierno", "trend": "up", "change": "+18%"},
-            {"query": "ropa casual", "trend": "up", "change": "+12%"},
-            {"query": "accesorios de moda", "trend": "up", "change": "+8%"},
-            {"query": "pantalones jeans", "trend": "stable", "change": "0%"},
-            {"query": "poleras básicas", "trend": "down", "change": "-5%"},
-            {"query": "zapatos formales", "trend": "down", "change": "-8%"},
-            {"query": "ropa de verano", "trend": "down", "change": "-15%"}
+            # Tendencias Premium/Lujo
+            {"query": "rolex datejust rolex", "trend": "up", "change": "+45%", "category": "relojes", "icon": "⌚"},
+            {"query": "louis vuitton executive briefcase louis vuitton", "trend": "up", "change": "+38%", "category": "accesorios", "icon": "💼"},
+            {"query": "gucci belt gucci", "trend": "up", "change": "+32%", "category": "accesorios", "icon": "👔"},
+            {"query": "prada sunglasses prada", "trend": "up", "change": "+28%", "category": "accesorios", "icon": "🕶️"},
+            
+            # Tendencias Deportivas
+            {"query": "nike air max 270 nike", "trend": "up", "change": "+35%", "category": "zapatillas", "icon": "👟"},
+            {"query": "adidas ultraboost 22 adidas", "trend": "up", "change": "+30%", "category": "zapatillas", "icon": "🏃"},
+            {"query": "jordan 1 retro jordan", "trend": "up", "change": "+25%", "category": "zapatillas", "icon": "🏀"},
+            {"query": "yeezy boost 350 yeezy", "trend": "up", "change": "+22%", "category": "zapatillas", "icon": "👟"},
+            
+            # Tendencias Ropa
+            {"query": "ropa formal", "trend": "up", "change": "+18%", "category": "ropa", "icon": "👔"},
+            {"query": "chaquetas de invierno", "trend": "up", "change": "+15%", "category": "ropa", "icon": "🧥"},
+            {"query": "hoodies nike", "trend": "up", "change": "+12%", "category": "ropa", "icon": "👕"},
+            {"query": "jeans levis", "trend": "up", "change": "+10%", "category": "ropa", "icon": "👖"},
+            
+            # Tendencias Accesorios
+            {"query": "smart watch apple", "trend": "up", "change": "+40%", "category": "tecnología", "icon": "⌚"},
+            {"query": "gafas de sol ray ban", "trend": "up", "change": "+25%", "category": "accesorios", "icon": "🕶️"},
+            {"query": "mochilas nike", "trend": "up", "change": "+20%", "category": "accesorios", "icon": "🎒"},
+            {"query": "gorras new era", "trend": "up", "change": "+15%", "category": "accesorios", "icon": "🧢"},
+            
+            # Tendencias Colores
+            {"query": "ropa negra", "trend": "up", "change": "+20%", "category": "color", "icon": "⚫"},
+            {"query": "zapatillas blancas", "trend": "up", "change": "+18%", "category": "color", "icon": "⚪"},
+            {"query": "ropa azul", "trend": "up", "change": "+12%", "category": "color", "icon": "🔵"},
+            {"query": "accesorios dorados", "trend": "up", "change": "+8%", "category": "color", "icon": "🟡"},
+            
+            # Tendencias Estacionales
+            {"query": "ropa de invierno", "trend": "up", "change": "+30%", "category": "estacional", "icon": "❄️"},
+            {"query": "zapatos de lluvia", "trend": "up", "change": "+25%", "category": "estacional", "icon": "🌧️"},
+            {"query": "guantes de cuero", "trend": "up", "change": "+20%", "category": "estacional", "icon": "🧤"},
+            {"query": "bufandas de lana", "trend": "up", "change": "+15%", "category": "estacional", "icon": "🧣"}
         ]
         
         return {
             "trending_searches": tendencias[:limit],
             "total_trends": len(tendencias),
             "period": "última semana",
-            "analysis_date": datetime.utcnow().isoformat()
+            "analysis_date": datetime.utcnow().isoformat(),
+            "categories": {
+                "premium": len([t for t in tendencias if t.get("category") in ["relojes", "accesorios"]]),
+                "deportivo": len([t for t in tendencias if t.get("category") == "zapatillas"]),
+                "ropa": len([t for t in tendencias if t.get("category") == "ropa"]),
+                "accesorios": len([t for t in tendencias if t.get("category") == "accesorios"]),
+                "color": len([t for t in tendencias if t.get("category") == "color"])
+            }
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener tendencias: {str(e)}")
@@ -225,6 +270,182 @@ def obtener_filtros_disponibles(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener filtros: {str(e)}")
+
+@router.get("/quick-search")
+def busquedas_rapidas(
+    category: str = Query(None, description="Categoría para búsquedas rápidas"),
+    limit: int = Query(12, ge=1, le=30, description="Número de opciones rápidas"),
+    db: Session = Depends(database.get_db)
+):
+    """Obtener opciones de búsqueda rápida por categorías"""
+    try:
+        # Búsquedas rápidas organizadas por categorías
+        quick_searches = {
+            "premium": [
+                {"query": "rolex submariner rolex", "icon": "⌚", "trend": "up", "price_range": "$5,000+"},
+                {"query": "louis vuitton neverfull louis vuitton", "icon": "👜", "trend": "up", "price_range": "$1,500+"},
+                {"query": "gucci loafers gucci", "icon": "👞", "trend": "up", "price_range": "$800+"},
+                {"query": "prada handbag prada", "icon": "👜", "trend": "up", "price_range": "$1,200+"},
+                {"query": "hermes birkin hermes", "icon": "👜", "trend": "up", "price_range": "$10,000+"},
+                {"query": "cartier santos cartier", "icon": "⌚", "trend": "up", "price_range": "$3,000+"}
+            ],
+            "deportivo": [
+                {"query": "nike air jordan 1 nike", "icon": "🏀", "trend": "up", "price_range": "$150-300"},
+                {"query": "adidas yeezy boost adidas", "icon": "👟", "trend": "up", "price_range": "$200-400"},
+                {"query": "nike dunk low nike", "icon": "👟", "trend": "up", "price_range": "$100-200"},
+                {"query": "converse chuck taylor converse", "icon": "👟", "trend": "up", "price_range": "$50-100"},
+                {"query": "vans old skool vans", "icon": "🛹", "trend": "up", "price_range": "$60-120"},
+                {"query": "new balance 990 new balance", "icon": "👟", "trend": "up", "price_range": "$120-200"}
+            ],
+            "ropa": [
+                {"query": "hoodies nike", "icon": "👕", "trend": "up", "price_range": "$40-80"},
+                {"query": "jeans levis 501", "icon": "👖", "trend": "up", "price_range": "$60-120"},
+                {"query": "chaquetas bomber", "icon": "🧥", "trend": "up", "price_range": "$80-150"},
+                {"query": "poleras básicas", "icon": "👕", "trend": "up", "price_range": "$20-40"},
+                {"query": "pantalones cargo", "icon": "👖", "trend": "up", "price_range": "$50-100"},
+                {"query": "suéteres de lana", "icon": "🧥", "trend": "up", "price_range": "$60-120"}
+            ],
+            "accesorios": [
+                {"query": "smart watch apple", "icon": "⌚", "trend": "up", "price_range": "$200-500"},
+                {"query": "gafas de sol ray ban", "icon": "🕶️", "trend": "up", "price_range": "$100-300"},
+                {"query": "mochilas nike", "icon": "🎒", "trend": "up", "price_range": "$40-80"},
+                {"query": "gorras new era", "icon": "🧢", "trend": "up", "price_range": "$25-50"},
+                {"query": "cinturones de cuero", "icon": "👔", "trend": "up", "price_range": "$30-80"},
+                {"query": "relojes casio", "icon": "⌚", "trend": "up", "price_range": "$50-150"}
+            ],
+            "colores": [
+                {"query": "ropa negra", "icon": "⚫", "trend": "up", "description": "Clásico y elegante"},
+                {"query": "zapatillas blancas", "icon": "⚪", "trend": "up", "description": "Versátil y limpio"},
+                {"query": "ropa azul marino", "icon": "🔵", "trend": "up", "description": "Profesional"},
+                {"query": "accesorios dorados", "icon": "🟡", "trend": "up", "description": "Lujoso"},
+                {"query": "ropa verde militar", "icon": "🟢", "trend": "up", "description": "Tendencia"},
+                {"query": "zapatillas rojas", "icon": "🔴", "trend": "up", "description": "Llamativo"}
+            ],
+            "estacional": [
+                {"query": "ropa de invierno", "icon": "❄️", "trend": "up", "description": "Temporada actual"},
+                {"query": "zapatos de lluvia", "icon": "🌧️", "trend": "up", "description": "Protección"},
+                {"query": "guantes de cuero", "icon": "🧤", "trend": "up", "description": "Elegancia"},
+                {"query": "bufandas de lana", "icon": "🧣", "trend": "up", "description": "Calidez"},
+                {"query": "botas de invierno", "icon": "🥾", "trend": "up", "description": "Resistencia"},
+                {"query": "chaquetas parka", "icon": "🧥", "trend": "up", "description": "Abrigo completo"}
+            ]
+        }
+        
+        # Si se especifica una categoría, devolver solo esa
+        if category and category in quick_searches:
+            return {
+                "category": category,
+                "quick_searches": quick_searches[category][:limit],
+                "total_options": len(quick_searches[category]),
+                "description": f"Búsquedas rápidas para {category}"
+            }
+        
+        # Si no se especifica categoría, devolver todas
+        all_searches = []
+        for cat, searches in quick_searches.items():
+            all_searches.extend(searches[:2])  # 2 de cada categoría
+        
+        return {
+            "quick_searches": all_searches[:limit],
+            "total_options": len(all_searches),
+            "available_categories": list(quick_searches.keys()),
+            "description": "Búsquedas rápidas por categorías"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al obtener búsquedas rápidas: {str(e)}")
+
+@router.get("/trending-categories")
+def obtener_categorias_trending(
+    limit: int = Query(8, ge=1, le=20, description="Número de categorías trending"),
+    db: Session = Depends(database.get_db)
+):
+    """Obtener categorías más trending con ejemplos"""
+    try:
+        trending_categories = [
+            {
+                "category": "relojes de lujo",
+                "icon": "⌚",
+                "trend": "up",
+                "change": "+45%",
+                "examples": ["rolex submariner", "omega speedmaster", "cartier santos"],
+                "price_range": "$1,000+",
+                "description": "Relojes premium y de colección"
+            },
+            {
+                "category": "zapatillas limitadas",
+                "icon": "👟",
+                "trend": "up",
+                "change": "+40%",
+                "examples": ["nike air jordan", "adidas yeezy", "off-white nike"],
+                "price_range": "$200-800",
+                "description": "Ediciones especiales y colaboraciones"
+            },
+            {
+                "category": "accesorios ejecutivos",
+                "icon": "💼",
+                "trend": "up",
+                "change": "+35%",
+                "examples": ["maletines louis vuitton", "cinturones gucci", "corbatas hermes"],
+                "price_range": "$200-2,000",
+                "description": "Accesorios para profesionales"
+            },
+            {
+                "category": "ropa streetwear",
+                "icon": "👕",
+                "trend": "up",
+                "change": "+30%",
+                "examples": ["hoodies supreme", "camisetas off-white", "pantalones balenciaga"],
+                "price_range": "$50-500",
+                "description": "Moda urbana y juvenil"
+            },
+            {
+                "category": "gafas de sol premium",
+                "icon": "🕶️",
+                "trend": "up",
+                "change": "+25%",
+                "examples": ["ray ban aviator", "oakley holbrook", "persol 649"],
+                "price_range": "$100-400",
+                "description": "Protección solar de alta calidad"
+            },
+            {
+                "category": "mochilas técnicas",
+                "icon": "🎒",
+                "trend": "up",
+                "change": "+20%",
+                "examples": ["nike tech pack", "adidas originals", "herschel supply"],
+                "price_range": "$40-150",
+                "description": "Funcionalidad y estilo"
+            },
+            {
+                "category": "zapatos formales",
+                "icon": "👞",
+                "trend": "up",
+                "change": "+15%",
+                "examples": ["oxfords church", "loafers gucci", "botines allen edmonds"],
+                "price_range": "$200-800",
+                "description": "Elegancia para oficina"
+            },
+            {
+                "category": "ropa de invierno",
+                "icon": "🧥",
+                "trend": "up",
+                "change": "+10%",
+                "examples": ["chaquetas canada goose", "abrigos burberry", "suéteres moncler"],
+                "price_range": "$100-1,500",
+                "description": "Protección contra el frío"
+            }
+        ]
+        
+        return {
+            "trending_categories": trending_categories[:limit],
+            "total_categories": len(trending_categories),
+            "period": "última semana",
+            "analysis_date": datetime.utcnow().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al obtener categorías trending: {str(e)}")
 
 @router.get("/health")
 def verificar_salud_busqueda(db: Session = Depends(database.get_db)):

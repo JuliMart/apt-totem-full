@@ -143,6 +143,15 @@ logs/
 *.tmp
 *.temp
 
+# Cursor/IDE agent tools
+.cursor/
+.agent-tools/
+*.out
+*.pid
 
+# Generated images (debug)
+debug_frame_*.jpg
+generated_images/
 
-
+# Database backups
+backup_*.sql

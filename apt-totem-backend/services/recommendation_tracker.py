@@ -123,7 +123,7 @@ class RecommendationTracker:
                               interaction_type: str,
                               variant_id: Optional[int] = None,
                               metadata: Optional[Dict] = None,
-                              duration_seconds: float = 0) -> None:
+                              duration_seconds: float = 0) -> int:
         """Registrar cualquier interacción del usuario"""
         
         interaccion = InteraccionUsuario(
@@ -135,6 +135,9 @@ class RecommendationTracker:
         )
         self.db.add(interaccion)
         self.db.commit()
+        self.db.refresh(interaccion)
+        
+        return interaccion.id_interaccion
     
     def calculate_session_metrics(self, session_id: str) -> Dict:
         """Calcular métricas para una sesión"""

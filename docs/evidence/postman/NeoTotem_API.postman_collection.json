@@ -1,0 +1,30 @@
+{
+  "info": {
+    "name": "NeoTotem API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Colección Postman para probar NeoTotem API"
+  },
+  "item": [
+    {
+      "name": "/",
+      "request": {"method": "GET", "url": "{{baseUrl}}/"}
+    },
+    {
+      "name": "/cv/analyze-complete",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/cv/analyze-complete",
+        "body": {"mode": "formdata", "formdata": [{"key": "file", "type": "file", "src": []}]}
+      }
+    },
+    {
+      "name": "/analytics/kpis",
+      "request": {"method": "GET", "url": "{{baseUrl}}/analytics/kpis"}
+    },
+    {
+      "name": "/recomendaciones/top",
+      "request": {"method": "GET", "url": "{{baseUrl}}/recomendaciones/top"}
+    }
+  ],
+  "variable": [{"key": "baseUrl", "value": "http://localhost:8001"}]
+}
