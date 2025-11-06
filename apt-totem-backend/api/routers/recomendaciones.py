@@ -331,6 +331,20 @@ def recomendaciones_inteligentes(
             'grises': 'gris'
         }
         
+        # Estilos mencionados
+        estilos_map = {
+            'formal': 'formal',
+            'formales': 'formal',
+            'elegante': 'elegante',
+            'elegantes': 'elegante',
+            'deportivo': 'deportivo',
+            'deportivos': 'deportivo',
+            'casual': 'casual',
+            'casuales': 'casual',
+            'deportiva': 'deportivo',
+            'deportivas': 'deportivo'
+        }
+        
         # Buscar MARCA en el texto (PRIORIDAD MÁXIMA)
         voice_brand = None
         texto_lower = texto_voz.lower()
@@ -352,6 +366,15 @@ def recomendaciones_inteligentes(
         for keyword in keywords:
             if keyword in colores_map:
                 voice_color = colores_map[keyword]
+                break
+        
+        # Buscar estilo en el texto
+        voice_style = None
+        texto_lower = texto_voz.lower()
+        for estilo_key, estilo_value in estilos_map.items():
+            if estilo_key in texto_lower:
+                voice_style = estilo_value
+                print(f"✅ VOZ: Estilo detectado: {voice_style}")
                 break
         
         # Extraer talla mencionada (números de 35-50 típicamente para calzado)
@@ -408,6 +431,44 @@ def recomendaciones_inteligentes(
         if voice_color:
             color_products = engine.get_products_by_color(voice_color, limit=4, session_id=session_id)
             all_recommendations.extend(color_products)
+        
+        # Búsqueda por ESTILO de voz (incluye ropa Y accesorios)
+        if voice_style:
+            estilo_to_categorias = {
+                'formal': {
+                    'ropa': ['Chaquetas', 'Pantalones', 'Camisas'],
+                    'accesorios': ['Accesorios', 'Bolsos']  # Relojes, carteras, cinturones
+                },
+                'elegante': {
+                    'ropa': ['Chaquetas', 'Pantalones', 'Camisas'],
+                    'accesorios': ['Accesorios', 'Bolsos', 'Gafas']  # Relojes, gafas, carteras
+                },
+                'deportivo': {
+                    'ropa': ['Zapatillas', 'Poleras', 'Pantalones'],
+                    'accesorios': ['Accesorios', 'Mochilas']  # Mochilas, gorras, relojes deportivos
+                },
+                'casual': {
+                    'ropa': ['Poleras', 'Pantalones', 'Chaquetas'],
+                    'accesorios': ['Accesorios', 'Bolsos', 'Gafas']  # Gafas, mochilas, relojes
+                }
+            }
+            
+            categorias_estilo = estilo_to_categorias.get(voice_style, {
+                'ropa': ['Poleras', 'Pantalones'],
+                'accesorios': ['Accesorios']
+            })
+            
+            # Agregar productos de ropa del estilo
+            for categoria_ropa in categorias_estilo['ropa'][:2]:  # Máximo 2 categorías de ropa
+                ropa_products = engine.get_products_by_category(categoria_ropa, limit=2, session_id=session_id)
+                all_recommendations.extend(ropa_products)
+            
+            # Agregar accesorios relacionados al estilo
+            for categoria_accesorio in categorias_estilo['accesorios'][:2]:  # Máximo 2 categorías de accesorios
+                accesorios_products = engine.get_products_by_category(categoria_accesorio, limit=2, session_id=session_id)
+                all_recommendations.extend(accesorios_products)
+            
+            print(f"✅ VOZ: Agregados productos de ropa y accesorios para estilo '{voice_style}'")
     
     # ═══════════════════════════════════════════
     # 2. ANÁLISIS DE IMAGEN (prioridad ALTA)
@@ -460,6 +521,21 @@ def recomendaciones_inteligentes(
                 session_id=session_id
             )
             all_recommendations.extend(personalized)
+        
+        # Si hay estilo detectado, agregar accesorios relacionados
+        if estilo:
+            estilo_to_accesorios = {
+                'formal': ['Accesorios', 'Bolsos'],  # Relojes, carteras, cinturones
+                'elegante': ['Accesorios', 'Bolsos', 'Gafas'],  # Relojes, gafas, carteras
+                'deportivo': ['Accesorios', 'Mochilas'],  # Mochilas, gorras, relojes deportivos
+                'casual': ['Accesorios', 'Bolsos', 'Gafas']  # Gafas, mochilas, relojes
+            }
+            
+            accesorios_categorias = estilo_to_accesorios.get(estilo.lower(), ['Accesorios'])
+            for categoria in accesorios_categorias[:2]:  # Máximo 2 categorías de accesorios
+                accesorios = engine.get_products_by_category(categoria, limit=2, session_id=session_id)
+                all_recommendations.extend(accesorios)
+            print(f"✅ IMAGEN: Agregados accesorios para estilo '{estilo}'")
     
     # ═══════════════════════════════════════════
     # 3. ELIMINAR DUPLICADOS Y LIMITAR
