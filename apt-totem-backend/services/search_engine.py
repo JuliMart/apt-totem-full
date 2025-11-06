@@ -302,7 +302,8 @@ class SearchRecommendationEngine:
             {
                 "id_variante": p.id_variante,
                 "id_producto": p.id_producto,
-                "producto": (p.producto.nombre or ""),
+                "nombre": (p.producto.nombre or ""),  # Cambiado de "producto" a "nombre" para consistencia
+                "producto": (p.producto.nombre or ""),  # Mantener compatibilidad
                 "marca": (p.producto.marca or ""),
                 "categoria": (p.producto.categoria.nombre if getattr(p.producto, "categoria", None) else ""),
                 "sku": p.sku,

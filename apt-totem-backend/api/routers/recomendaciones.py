@@ -262,6 +262,28 @@ def recomendaciones_inteligentes(
         # Extraer keywords del texto de voz
         keywords = texto_voz.lower().split()
         
+        # Mapeo de marcas conocidas (prioridad alta)
+        marcas_map = {
+            'nike': 'Nike',
+            'adidas': 'Adidas',
+            'converse': 'Converse',
+            'vans': 'Vans',
+            'puma': 'Puma',
+            'new balance': 'New Balance',
+            'under armour': 'Under Armour',
+            'ray ban': 'Ray-Ban',
+            'oakley': 'Oakley',
+            'rolex': 'Rolex',
+            'casio': 'Casio',
+            'apple': 'Apple',
+            'gucci': 'Gucci',
+            'louis vuitton': 'Louis Vuitton',
+            'prada': 'Prada',
+            'hermes': 'Hermes',
+            'cartier': 'Cartier',
+            'omega': 'Omega'
+        }
+        
         # Buscar por categorías mencionadas
         categorias_map = {
             'zapatillas': 'Zapatillas',
@@ -286,9 +308,6 @@ def recomendaciones_inteligentes(
             'smart': 'Accesorios',
             'smartwatch': 'Accesorios',
             'smart watch': 'Accesorios',
-            'apple': 'Accesorios',
-            'rolex': 'Accesorios',
-            'casio': 'Accesorios',
             'mochila': 'Accesorios',
             'cartera': 'Accesorios',
             'accesorios': 'Accesorios'
@@ -312,6 +331,15 @@ def recomendaciones_inteligentes(
             'grises': 'gris'
         }
         
+        # Buscar MARCA en el texto (PRIORIDAD MÁXIMA)
+        voice_brand = None
+        texto_lower = texto_voz.lower()
+        for marca_key, marca_value in marcas_map.items():
+            if marca_key in texto_lower:
+                voice_brand = marca_value
+                print(f"✅ VOZ: Marca detectada: {voice_brand}")
+                break
+        
         # Buscar categoría en el texto
         voice_category = None
         for keyword in keywords:
@@ -332,7 +360,14 @@ def recomendaciones_inteligentes(
         talla_match = re.search(tallas_pattern, texto_voz)
         voice_talla = talla_match.group(0) if talla_match else None
         
-        # Búsqueda por categoría y talla de voz (PRIORIDAD MÁXIMA)
+        # Búsqueda por MARCA (PRIORIDAD MÁXIMA - antes que categoría)
+        if voice_brand:
+            brand_products = engine.get_products_by_brand(voice_brand, limit=8, session_id=session_id)
+            if brand_products:
+                all_recommendations.extend(brand_products)
+                print(f"✅ VOZ: Encontrados {len(brand_products)} productos de marca {voice_brand}")
+        
+        # Búsqueda por categoría y talla de voz (PRIORIDAD ALTA)
         if voice_category and voice_talla:
             # Buscar productos específicos de la categoría Y talla
             query = db.query(models.ProductoVariante).join(models.Producto).join(models.Categoria).filter(
