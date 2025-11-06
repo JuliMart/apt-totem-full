@@ -14,6 +14,14 @@
 
 </div>
 
+## 📦 Repositorios
+
+Este es el **monorepo completo** que contiene frontend, backend, datos y documentación.
+
+- **Frontend (Flutter)**: [JuliMart/apt-totem](https://github.com/JuliMart/apt-totem)
+- **Backend (FastAPI)**: [JuliMart/apt-totem-backend](https://github.com/JuliMart/apt-totem-backend)
+- **Monorepo (Todo junto)**: [JuliMart/apt-totem-full](https://github.com/JuliMart/apt-totem-full) ← Este repo
+
 ---
 
 ## 📋 Descripción
