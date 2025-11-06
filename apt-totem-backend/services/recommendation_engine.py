@@ -32,14 +32,36 @@ class RecommendationEngine:
             )
     
     def get_products_by_category(self, category_name: str, limit: int = 10, session_id: Optional[str] = None) -> List[Dict]:
-        """Obtener productos por categoría con tracking"""
+        """Obtener productos variados por categoría (una variante por producto)"""
         start_time = time.time()
         
-        productos = self.db.query(ProductoVariante).join(Producto).join(Categoria).filter(
+        # Obtener productos únicos de la categoría (agrupados por id_producto)
+        productos_unicos = self.db.query(Producto).join(Categoria).filter(
             Categoria.nombre.ilike(f"%{category_name}%")
-        ).limit(limit).all()
+        ).limit(limit * 2).all()  # Obtener más productos para tener opciones
         
-        formatted_products = self._format_products(productos)
+        # Para cada producto, tomar solo UNA variante (preferir la primera disponible)
+        variantes_seleccionadas = []
+        productos_ids_vistos = set()
+        
+        for producto in productos_unicos:
+            if producto.id_producto in productos_ids_vistos:
+                continue  # Ya tenemos una variante de este producto
+            
+            # Obtener la primera variante disponible de este producto
+            variante = self.db.query(ProductoVariante).filter(
+                ProductoVariante.id_producto == producto.id_producto
+            ).first()
+            
+            if variante:
+                variantes_seleccionadas.append(variante)
+                productos_ids_vistos.add(producto.id_producto)
+                
+                # Si ya tenemos suficientes productos únicos, parar
+                if len(variantes_seleccionadas) >= limit:
+                    break
+        
+        formatted_products = self._format_products(variantes_seleccionadas)
         generation_time_ms = int((time.time() - start_time) * 1000)
         
         self._track_recommendation(
@@ -89,14 +111,36 @@ class RecommendationEngine:
         return formatted_products
     
     def get_products_by_brand(self, brand: str, limit: int = 10, session_id: Optional[str] = None) -> List[Dict]:
-        """Obtener productos por marca con tracking"""
+        """Obtener productos variados por marca (una variante por producto)"""
         start_time = time.time()
         
-        productos = self.db.query(ProductoVariante).join(Producto).filter(
+        # Obtener productos únicos de la marca (agrupados por id_producto)
+        productos_unicos = self.db.query(Producto).filter(
             Producto.marca.ilike(f"%{brand}%")
-        ).limit(limit).all()
+        ).limit(limit * 2).all()  # Obtener más productos para tener opciones
         
-        formatted_products = self._format_products(productos)
+        # Para cada producto, tomar solo UNA variante (preferir la primera disponible)
+        variantes_seleccionadas = []
+        productos_ids_vistos = set()
+        
+        for producto in productos_unicos:
+            if producto.id_producto in productos_ids_vistos:
+                continue  # Ya tenemos una variante de este producto
+            
+            # Obtener la primera variante disponible de este producto
+            variante = self.db.query(ProductoVariante).filter(
+                ProductoVariante.id_producto == producto.id_producto
+            ).first()
+            
+            if variante:
+                variantes_seleccionadas.append(variante)
+                productos_ids_vistos.add(producto.id_producto)
+                
+                # Si ya tenemos suficientes productos únicos, parar
+                if len(variantes_seleccionadas) >= limit:
+                    break
+        
+        formatted_products = self._format_products(variantes_seleccionadas)
         generation_time_ms = int((time.time() - start_time) * 1000)
         
         self._track_recommendation(
