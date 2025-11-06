@@ -62,59 +62,64 @@ app.include_router(session_control.router)
 # Servir imágenes estáticas
 app.mount("/product_images", StaticFiles(directory="../product_images"), name="product_images")
 
-# Servir página de visualización
+# Servir páginas del frontend (admin y demos)
 from fastapi.responses import FileResponse
+import os
+
+# Base path para archivos del frontend
+FRONTEND_BASE = os.path.join(os.path.dirname(__file__), "..", "..", "frontend")
+
 @app.get("/visualization")
 async def get_visualization():
     """Página de visualización en tiempo real"""
-    return FileResponse("static/visualization.html")
+    return FileResponse(os.path.join(FRONTEND_BASE, "admin", "visualization.html"))
 
 # Servir dashboard dinámico
 @app.get("/dashboard")
 async def get_dashboard():
     """Dashboard dinámico con analytics"""
-    return FileResponse("static/dashboard_dinamico_nuevo.html")
+    return FileResponse(os.path.join(FRONTEND_BASE, "admin", "dashboard_dinamico_nuevo.html"))
 
 @app.get("/dashboard-old")
 async def get_dashboard_old():
     """Dashboard dinámico anterior"""
-    return FileResponse("static/dashboard_dinamico.html")
+    return FileResponse(os.path.join(FRONTEND_BASE, "admin", "dashboard_dinamico.html"))
 
 # Servir ejemplo de búsquedas expandidas
 @app.get("/modal-calificar")
 async def get_modal_calificar():
     """Modal automático para calificar recomendaciones"""
-    return FileResponse("static/modal_calificacion.html")
+    return FileResponse(os.path.join(FRONTEND_BASE, "admin", "modal_calificacion.html"))
 
 @app.get("/flujo-completo")
 async def get_flujo_completo():
     """Flujo completo con modal automático"""
-    return FileResponse("static/flujo_completo_modal.html")
+    return FileResponse(os.path.join(FRONTEND_BASE, "admin", "flujo_completo_modal.html"))
 
 @app.get("/test-urls")
 async def get_test_urls():
     """Página de prueba para apertura de URLs"""
-    return FileResponse("static/test_url_opening.html")
+    return FileResponse(os.path.join(FRONTEND_BASE, "demos", "test_url_opening.html"))
 
 @app.get("/control-sesiones")
 async def get_control_sesiones():
     """Panel de control de sesiones"""
-    return FileResponse("static/control_sesiones.html")
+    return FileResponse(os.path.join(FRONTEND_BASE, "admin", "control_sesiones.html"))
 
 @app.get("/calificar")
 async def get_calificar_page():
     """Página para calificar recomendaciones"""
-    return FileResponse("static/calificar_recomendacion.html")
+    return FileResponse(os.path.join(FRONTEND_BASE, "admin", "calificar_recomendacion.html"))
 
 @app.get("/calificar-grupos")
 async def get_calificar_grupos():
     """Página para calificar grupos de recomendaciones"""
-    return FileResponse("static/calificar_grupos.html")
+    return FileResponse(os.path.join(FRONTEND_BASE, "admin", "calificar_grupos.html"))
 
 @app.get("/opciones-compra")
 async def get_opciones_compra():
     """Página de opciones de compra basadas en precio"""
-    return FileResponse("static/opciones_compra.html")
+    return FileResponse(os.path.join(FRONTEND_BASE, "admin", "opciones_compra.html"))
 
 # Lista de conexiones WebSocket activas
 active_connections: List[WebSocket] = []

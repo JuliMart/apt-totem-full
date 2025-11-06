@@ -5,7 +5,7 @@
 Se ha actualizado la **pestaña "Gerencia"** del frontend Flutter para incluir las 3 funcionalidades solicitadas:
 
 ### 📊 **1. Dashboard Tab**
-- **Acceso directo** al dashboard dinámico (`http://127.0.0.1:8001/dashboard`)
+- **Acceso directo** al dashboard dinámico. (`http://127.0.0.1:8001/dashboard`)
 - **Descripción de métricas** disponibles:
   - 📱 Sesiones Iniciadas
   - ⏱️ Duración Promedio
