@@ -1,0 +1,8 @@
+# GitHub Linguist configuration
+
+# Tratar HTMLs de demo y paneles como documentación para no sesgar lenguajes
+apt-totem-backend/static/**/*.html linguist-documentation
+# Archivos HTML de pruebas en la raíz
+*.html linguist-documentation
+# Documentación completa
+docs/** linguist-documentation
